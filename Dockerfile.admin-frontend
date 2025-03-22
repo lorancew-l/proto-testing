@@ -1,0 +1,15 @@
+FROM node:20-alpine as base
+RUN corepack enable
+
+FROM base AS build
+COPY . /usr/src/app
+WORKDIR /usr/src/app
+RUN pnpm install --frozen-lockfile &&\
+  pnpm --filter admin-frontend build
+
+FROM nginx AS frontend
+COPY --from=build /usr/src/app/packages/frontend/dist /usr/share/nginx/html 
+RUN rm /etc/nginx/conf.d/default.conf
+COPY --from=build /usr/src/app/packages/frontend/nginx.conf /etc/nginx/conf.d/
+CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 80

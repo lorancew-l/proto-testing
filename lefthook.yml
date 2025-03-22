@@ -1,0 +1,12 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{js,ts,jsx,tsx,css,scss,md}"
+      run: pnpm lint && git add {staged_files}
+    format:
+      glob: "*.{js,ts,jsx,tsx,css,scss,md}"
+      run: pnpm prettier --write {staged_files} && git add {staged_files}
+    typecheck:
+      glob: "*.{ts,tsx}"
+      run: pnpm typecheck

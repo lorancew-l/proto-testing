@@ -1,0 +1,29 @@
+:root {
+  color: black;
+  font-family: Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  margin: 0;
+}
+
+#root {
+  overflow-x: hidden;
+  max-height: 100vh;
+  height: 100%;
+  overflow-y: auto;
+  position: relative;
+}

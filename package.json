@@ -1,0 +1,17 @@
+{
+  "name": "proto-testing",
+  "version": "1.0.0",
+  "scripts": {
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "format": "pnpm prettier --write **/*.{js,ts,css,scss,md}",
+    "start:dev:admin-backend": "pnpm --filter admin-backend start:dev",
+    "start:dev:admin-frontend": "pnpm --filter admin-frontend dev"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "4.3.0",
+    "lefthook": "1.6.1",
+    "prettier": "2.3.2"
+  }
+}

@@ -1,0 +1,13 @@
+version: '3.8'
+
+volumes:
+  admin_backend_postgresdata:
+
+services:
+  admin_backend_postgres:
+    image: postgres
+    env_file: './packages/admin-backend/.env'
+    volumes:
+      - admin_backend_postgresdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
