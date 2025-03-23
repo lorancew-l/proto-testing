@@ -70,8 +70,6 @@ export const SignInPage = () => {
   const { signInUser, isLoading } = useSignInRequest({
     onSuccess: (tokens: TokenResponse) => {
       setTokens(tokens);
-
-      console.log('navigate');
       navigate(location.state?.from ?? '/');
     },
     onError: (error) => {

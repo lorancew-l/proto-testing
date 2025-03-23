@@ -1,0 +1,11 @@
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "scripts": {
+    "typecheck": "pnpm tsc --noEmit"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "nanoid": "5.0.8"
+  }
+}

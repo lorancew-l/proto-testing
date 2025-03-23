@@ -1,0 +1,17 @@
+.tiptap {
+  /* outline-color: #1976d2; */
+  outline-color: transparent;
+  padding: 0.3em;
+}
+
+.tiptap p {
+  margin: 0;
+}
+
+.tiptap .is-editor-empty:first-child::before {
+  color: #35261c4d;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
