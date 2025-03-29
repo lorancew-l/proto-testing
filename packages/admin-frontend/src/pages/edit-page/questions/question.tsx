@@ -1,3 +1,5 @@
+import { memo } from 'react';
+
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 import { Question as ResearchQuestion } from 'shared';
@@ -6,6 +8,7 @@ import { makeStyles } from 'tss-react/mui';
 import { useEditPageActions } from '../store';
 
 import { MultipleQuestion } from './multiple-question';
+import { PrototypeQuestion } from './prototype-question';
 import { QuestionActions } from './question-actions';
 import { QuestionText } from './question-text';
 import { QuestionTypeSelect } from './question-type-select';
@@ -88,9 +91,10 @@ const questionTypeToComponent: {
   single: SingleQuestion,
   multiple: MultipleQuestion,
   rating: RatingQuestion,
+  prototype: PrototypeQuestion,
 };
 
-export const Question = ({ question, index, last }: { question: ResearchQuestion; index: number; last: boolean }) => {
+export const Question = memo(({ question, index, last }: { question: ResearchQuestion; index: number; last: boolean }) => {
   const Component = questionTypeToComponent[question.type] as React.ComponentType<{ question: ResearchQuestion; index: number }>;
 
   return (
@@ -98,7 +102,9 @@ export const Question = ({ question, index, last }: { question: ResearchQuestion
       <Component question={question} index={index} />
     </QuestionWrapper>
   );
-};
+});
+
+Question.displayName = 'Question';
 
 const QuestionWrapper = ({
   id,

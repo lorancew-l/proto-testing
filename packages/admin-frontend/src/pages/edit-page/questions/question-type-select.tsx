@@ -3,6 +3,7 @@ import { useState } from 'react';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import GradeIcon from '@mui/icons-material/Grade';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
+import WebIcon from '@mui/icons-material/Web';
 import { alpha } from '@mui/material';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -16,12 +17,14 @@ const typeToIcon: Record<Question['type'], React.ComponentType<{ className?: str
   single: RadioButtonCheckedIcon,
   multiple: CheckBoxIcon,
   rating: GradeIcon,
+  prototype: WebIcon,
 };
 
 const typeToTitle: Record<Question['type'], string> = {
   single: 'Одиночный выбор',
   multiple: 'Множественный выбор',
   rating: 'Рейтинг',
+  prototype: 'Тестирование прототипа',
 };
 
 const useStyles = makeStyles()((theme) => ({

@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { FieldPathValue, Path } from 'react-hook-form';
 
-import { get as _get, set as _set, omit } from 'lodash';
+import { get as _get, set as _set, isFunction, omit } from 'lodash';
 
 import { move } from '@dnd-kit/helpers';
 import { nanoid } from 'nanoid';
 import { Question, Research, generateAnswer, generateQuestion } from 'shared';
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 export type Section = 'research' | 'preview' | 'stats';
@@ -24,7 +24,7 @@ interface EditPageStoreState {
   };
 }
 
-interface Fields extends Pick<EditPageStore, 'research'> {}
+export type Fields = Pick<EditPageStore, 'research'>;
 
 interface EditPageStoreActions {
   setSection: (section: Section) => void;
@@ -50,7 +50,7 @@ interface EditPageStoreActions {
   };
 }
 
-interface EditPageStore extends EditPageStoreState {
+export interface EditPageStore extends EditPageStoreState {
   actions: EditPageStoreActions;
 }
 
@@ -71,152 +71,155 @@ const getStoreDefaultValue = (): Omit<EditPageStore, 'actions'> => ({
 
 export const useEditPageStore = create<EditPageStore>()(
   devtools(
-    immer((set, get) => ({
-      ...getStoreDefaultValue(),
-      actions: {
-        form: {
-          setFieldValue: (field, value) =>
+    immer(
+      subscribeWithSelector((set, get) => ({
+        ...getStoreDefaultValue(),
+        actions: {
+          form: {
+            setFieldValue: (field, value) =>
+              set((state) => {
+                _set(state, field, value);
+              }),
+            getFieldValue: <T extends Path<Fields>>(field: T) => _get(get(), field) as FieldPathValue<Fields, T>,
+            registerField: (path, handle, questionId, answerId) =>
+              set((state) => {
+                let shouldResetScheduledFocusPath = false;
+
+                if (path === state.form.scheduledFocusPath) {
+                  handle.focus();
+                  handle.scrollIntoView();
+                  shouldResetScheduledFocusPath = true;
+                }
+
+                return {
+                  ...state,
+                  form: {
+                    ...state.form,
+                    registeredFields: { ...state.form.registeredFields, [path]: { ...handle, questionId, answerId } },
+                    ...(shouldResetScheduledFocusPath && { scheduledFocusPath: null }),
+                  },
+                };
+              }),
+            unregisterField: (path) =>
+              set((state) => {
+                return {
+                  ...state,
+                  form: {
+                    ...state.form,
+                    registeredFields: omit(state.form.registeredFields, path),
+                  },
+                };
+              }),
+            focus: (path) =>
+              set((state) => {
+                const registeredFields = state.form.registeredFields;
+                const handle = registeredFields[path];
+
+                const questionIdPath = getQuestionIdPathFromPath(path);
+                const answerIdPath = getAnswerIdPathFromPath(path);
+
+                const currentQuestionId = questionIdPath ? _get(state, questionIdPath) : undefined;
+                const currentAnswerId = answerIdPath ? _get(state, answerIdPath) : undefined;
+
+                if (
+                  handle &&
+                  (!handle.questionId || handle.questionId === currentQuestionId) &&
+                  (!handle.answerId || handle.answerId === currentAnswerId)
+                ) {
+                  handle.focus();
+                } else {
+                  state.form.scheduledFocusPath = path;
+                }
+              }),
+          },
+          setSection: (section) => set({ section }),
+          removeQuestion: (id) =>
             set((state) => {
-              _set(state, field, value);
+              state.research.data.questions = state.research.data.questions.filter((q) => q.id !== id);
             }),
-          getFieldValue: <T extends Path<Fields>>(field: T) => _get(get(), field) as FieldPathValue<Fields, T>,
-          registerField: (path, handle, questionId, answerId) =>
+          duplicateQuestion: (id) =>
             set((state) => {
-              let shouldResetScheduledFocusPath = false;
+              const { questions } = state.research.data;
+              const questionToCopyIndex = questions.findIndex((q) => q.id === id);
+              const questionToCopy = questions[questionToCopyIndex];
+              if (!questionToCopy) return;
 
-              if (path === state.form.scheduledFocusPath) {
-                handle.focus();
-                handle.scrollIntoView();
-                shouldResetScheduledFocusPath = true;
-              }
+              const nextQuestions = [...questions];
+              nextQuestions.splice(questionToCopyIndex, 0, {
+                ...questionToCopy,
+                id: nanoid(10),
+                ...('answers' in questionToCopy && { answers: questionToCopy.answers.map((a) => ({ ...a, id: nanoid(10) })) }),
+              });
 
-              return {
-                ...state,
-                form: {
-                  ...state.form,
-                  registeredFields: { ...state.form.registeredFields, [path]: { ...handle, questionId, answerId } },
-                  ...(shouldResetScheduledFocusPath && { scheduledFocusPath: null }),
-                },
-              };
+              state.research.data.questions = nextQuestions;
             }),
-          unregisterField: (path) =>
+          changeQuestionType: (id, type) =>
             set((state) => {
-              return {
-                ...state,
-                form: {
-                  ...state.form,
-                  registeredFields: omit(state.form.registeredFields, path),
-                },
-              };
+              const { questions } = state.research.data;
+              const questionIndex = questions.findIndex((q) => q.id === id);
+              const question = questions[questionIndex];
+              if (!question) return;
+              questions[questionIndex] = generateQuestion(type, {
+                id: question.id,
+                text: question.text,
+                ...('answers' in question &&
+                  type !== 'rating' &&
+                  type !== 'prototype' && {
+                    answers: question.answers.map((a) => generateAnswer(type, { id: a.id, text: a.text })),
+                  }),
+              });
             }),
-          focus: (path) =>
-            set((state) => {
-              const registeredFields = state.form.registeredFields;
-              const handle = registeredFields[path];
-
-              const questionIdPath = getQuestionIdPathFromPath(path);
-              const answerIdPath = getAnswerIdPathFromPath(path);
-
-              const currentQuestionId = questionIdPath ? _get(state, questionIdPath) : undefined;
-              const currentAnswerId = answerIdPath ? _get(state, answerIdPath) : undefined;
-
-              if (
-                handle &&
-                (!handle.questionId || handle.questionId === currentQuestionId) &&
-                (!handle.answerId || handle.answerId === currentAnswerId)
-              ) {
-                handle.focus();
-              } else {
-                state.form.scheduledFocusPath = path;
-              }
-            }),
-        },
-        setSection: (section) => set({ section }),
-        removeQuestion: (id) =>
-          set((state) => {
-            state.research.data.questions = state.research.data.questions.filter((q) => q.id !== id);
-          }),
-        duplicateQuestion: (id) =>
-          set((state) => {
+          insertQuestion: (index) => {
+            const state = get();
             const { questions } = state.research.data;
-            const questionToCopyIndex = questions.findIndex((q) => q.id === id);
-            const questionToCopy = questions[questionToCopyIndex];
-            if (!questionToCopy) return;
-
             const nextQuestions = [...questions];
-            nextQuestions.splice(questionToCopyIndex, 0, {
-              ...questionToCopy,
-              id: nanoid(10),
-              ...('answers' in questionToCopy && { answers: questionToCopy.answers.map((a) => ({ ...a, id: nanoid(10) })) }),
+            nextQuestions.splice(index, 0, generateQuestion('single'));
+
+            set((state) => {
+              state.research.data.questions = nextQuestions;
             });
+            state.actions.form.focus(`research.data.questions.${index}.text`);
+          },
+          appendQuestion: () => {
+            get().actions.insertQuestion(get().research.data.questions.length);
+          },
+          appendAnswer: (questionId) => {
+            const state = get();
 
-            state.research.data.questions = nextQuestions;
-          }),
-        changeQuestionType: (id, type) =>
-          set((state) => {
-            const { questions } = state.research.data;
-            const questionIndex = questions.findIndex((q) => q.id === id);
-            const question = questions[questionIndex];
-            if (!question) return;
-            questions[questionIndex] = generateQuestion(type, {
-              id: question.id,
-              text: question.text,
-              ...('answers' in question &&
-                type !== 'rating' && {
-                  answers: question.answers.map((a) => generateAnswer(type, { id: a.id, text: a.text })),
-                }),
-            });
-          }),
-        insertQuestion: (index) => {
-          const state = get();
-          const { questions } = state.research.data;
-          const nextQuestions = [...questions];
-          nextQuestions.splice(index, 0, generateQuestion('single'));
-
-          set((state) => {
-            state.research.data.questions = nextQuestions;
-          });
-          state.actions.form.focus(`research.data.questions.${index}.text`);
-        },
-        appendQuestion: () => {
-          get().actions.insertQuestion(get().research.data.questions.length);
-        },
-        appendAnswer: (questionId) => {
-          const state = get();
-
-          const { questions } = state.research.data;
-          const questionIndex = questions.findIndex((q) => q.id === questionId);
-          const question = questions[questionIndex];
-
-          if (!(question && 'answers' in question)) return;
-
-          const nextQuestion = { ...question, answers: [...question.answers, generateAnswer(question.type)] };
-
-          set((state) => {
-            state.research.data.questions[questionIndex] = nextQuestion;
-          });
-          state.actions.form.focus(`research.data.questions.${questionIndex}.answers.${nextQuestion.answers.length - 1}.text`);
-        },
-        removeAnswer: (questionId, answerId) =>
-          set((state) => {
-            const { questions } = state.research.data;
-            const question = questions.find((q) => q.id === questionId);
-            if (question && 'answers' in question) {
-              question.answers = question.answers.filter((a) => a.id !== answerId);
-            }
-          }),
-        moveAnswer: (questionId, event) =>
-          set((state) => {
             const { questions } = state.research.data;
             const questionIndex = questions.findIndex((q) => q.id === questionId);
             const question = questions[questionIndex];
 
-            if (question && 'answers' in question) {
-              question.answers = move(question.answers, event);
-            }
-          }),
-      },
-    })),
+            if (!(question && 'answers' in question)) return;
+
+            const nextQuestion = { ...question, answers: [...question.answers, generateAnswer(question.type)] };
+
+            set((state) => {
+              state.research.data.questions[questionIndex] = nextQuestion;
+            });
+            state.actions.form.focus(`research.data.questions.${questionIndex}.answers.${nextQuestion.answers.length - 1}.text`);
+          },
+          removeAnswer: (questionId, answerId) =>
+            set((state) => {
+              const { questions } = state.research.data;
+              const question = questions.find((q) => q.id === questionId);
+              if (question && 'answers' in question) {
+                question.answers = question.answers.filter((a) => a.id !== answerId);
+              }
+            }),
+          moveAnswer: (questionId, event) =>
+            set((state) => {
+              const { questions } = state.research.data;
+              const questionIndex = questions.findIndex((q) => q.id === questionId);
+              const question = questions[questionIndex];
+
+              if (question && 'answers' in question) {
+                question.answers = move(question.answers, event);
+              }
+            }),
+        },
+      })),
+    ),
   ),
 );
 
@@ -256,7 +259,23 @@ export const useFieldController = <T extends Path<Fields>>(path: T) => {
     return () => unregisterField(path);
   }, [path]);
 
-  return { value, onChange: (value: FieldPathValue<Fields, T>) => setFieldValue(path, value), ref: setRef };
+  return {
+    value,
+    onChange: (value: FieldPathValue<Fields, T> | ((value: FieldPathValue<Fields, T>) => FieldPathValue<Fields, T>)) => {
+      if (isFunction(value)) {
+        setFieldValue(path, value(getFieldValue(path)));
+      } else {
+        setFieldValue(path, value);
+      }
+    },
+    getCurrentValue: () => getFieldValue(path),
+    ref: setRef,
+  };
+};
+
+export const useFieldWatch = <T extends Path<Fields>>(path: T) => {
+  const value = useEditPageStore((state) => _get(state, path));
+  return value;
 };
 
 function getQuestionIdPathFromPath(path: string): `research.data.questions.${number}.id` | null {

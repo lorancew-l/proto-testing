@@ -1,6 +1,15 @@
 import { nanoid } from 'nanoid';
 
-import { BaseAnswer, BaseQuestion, MultipleQuestion, Question, RatingQuestion, Research, SingleQuestion } from './types';
+import {
+  BaseAnswer,
+  BaseQuestion,
+  MultipleQuestion,
+  PrototypeQuestion,
+  Question,
+  RatingQuestion,
+  Research,
+  SingleQuestion,
+} from './types';
 
 export const generateAnswer = <T extends Extract<Question, { answers: unknown[] }>>(
   type: T['type'],
@@ -58,6 +67,13 @@ export const generateQuestion = <T extends Question['type']>(
         ...baseQuestion,
         ...overrides,
       } satisfies RatingQuestion;
+    case 'prototype':
+      return {
+        type,
+        screens: [],
+        ...baseQuestion,
+        ...overrides,
+      } satisfies PrototypeQuestion;
     default: {
       return baseQuestion as Question;
     }

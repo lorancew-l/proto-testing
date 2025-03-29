@@ -27,7 +27,30 @@ export interface RatingQuestion extends BaseQuestion {
   max: number;
 }
 
-export type Question = SingleQuestion | MultipleQuestion | RatingQuestion;
+export interface PrototypeArea {
+  id: string;
+  rect: { top: number; left: number; width: number; height: number };
+  goToScreenId: string | null;
+}
+export interface PrototypeScreen {
+  id: string;
+  position: {
+    x: number;
+    y: number;
+  };
+  data: {
+    description: string;
+    imageSrc: string;
+    areas: PrototypeArea[];
+  };
+}
+
+export interface PrototypeQuestion extends BaseQuestion {
+  type: 'prototype';
+  screens: PrototypeScreen[];
+}
+
+export type Question = SingleQuestion | MultipleQuestion | RatingQuestion | PrototypeQuestion;
 
 export interface Research {
   id: string;
