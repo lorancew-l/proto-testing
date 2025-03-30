@@ -2,6 +2,7 @@ version: '3.8'
 
 volumes:
   admin_backend_postgresdata:
+  minio_data:
 
 services:
   admin_backend_postgres:
@@ -11,3 +12,11 @@ services:
       - admin_backend_postgresdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+  minio:
+    image: minio/minio
+    env_file: './packages/admin-backend/.env'
+    command: server /data
+    volumes:
+      - minio_data:/data 
+    ports:
+      - "${MINIO_PORT}:9000"

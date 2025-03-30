@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 
-import { Typography } from '@mui/material';
+import { CircularProgress, Typography } from '@mui/material';
 
 import { makeStyles } from 'tss-react/mui';
+
+import { useUploadFileRequest } from '../../../../api';
 
 const toBase64 = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -37,6 +39,7 @@ const useStyles = makeStyles()((theme) => ({
 export const ImageUploader = ({ onImageUpload }: { onImageUpload: (src: string) => void }) => {
   const { classes } = useStyles();
 
+  const { uploadFile, isLoading } = useUploadFileRequest();
   const { getRootProps, getInputProps, open } = useDropzone({
     accept: {
       'image/*': [],
@@ -45,9 +48,10 @@ export const ImageUploader = ({ onImageUpload }: { onImageUpload: (src: string) 
     onDropAccepted: async (files) => {
       const [file] = files;
       if (file) {
-        const base64Image = await toBase64(file);
-
-        onImageUpload(base64Image);
+        const result = await uploadFile(file);
+        if (result?.url) {
+          onImageUpload(result.url);
+        }
       }
     },
     noClick: true,
@@ -93,9 +97,13 @@ export const ImageUploader = ({ onImageUpload }: { onImageUpload: (src: string) 
       <div {...getRootProps({ className: classes.dropzone })} onClick={open}>
         <input {...getInputProps()} />
 
-        <Typography fontWeight="bold" variant="h6" color="black">
-          Добавьте изображение
-        </Typography>
+        {isLoading ? (
+          <CircularProgress />
+        ) : (
+          <Typography fontWeight="bold" variant="h6" color="black">
+            Добавьте изображение
+          </Typography>
+        )}
       </div>
     </section>
   );
