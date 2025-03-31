@@ -10,9 +10,9 @@ export class S3StorageService {
   private readonly port: string;
 
   constructor(configService: ConfigService) {
-    const endPoint = configService.get<string>('MINIO_URL');
+    const endPoint = configService.get<string>('MINIO_ENDPOINT');
     const port = configService.get<string>('MINIO_PORT');
-    if (!endPoint) throw new Error('Missing MINIO_URL variable');
+    if (!endPoint) throw new Error('Missing MINIO_ENDPOINT variable');
     if (!port) throw new Error('Missing MINIO_PORT variable');
     this.endpoint = endPoint;
     this.port = port;
@@ -22,7 +22,7 @@ export class S3StorageService {
       port: configService.get('MINIO_PORT'),
       accessKey: configService.get('MINIO_ROOT_USER'),
       secretKey: configService.get('MINIO_ROOT_PASSWORD'),
-      useSSL: false,
+      useSSL: configService.get('MINIO_USE_SSL') === 'true',
     });
   }
 

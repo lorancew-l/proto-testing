@@ -1,0 +1,16 @@
+FROM node:20-alpine as base
+RUN npm install -g pnpm@8.8.0
+
+FROM base AS build
+COPY . /usr/src/app
+WORKDIR /usr/src/app
+RUN pnpm install --frozen-lockfile &&\
+  pnpm --filter "respondent-frontend" build &&\
+  pnpm deploy --filter "respondent-frontend" --prod /prod/app 
+COPY ./packages/respondent-frontend/upload-bundle.ts /prod/app
+
+FROM base AS deploy
+COPY --from=build /prod/app /prod/app
+WORKDIR /prod/app
+RUN pnpm install tsx minio
+CMD ["npx", "tsx", "upload-bundle.ts"]

@@ -15,8 +15,9 @@ services:
   minio:
     image: minio/minio
     env_file: './packages/admin-backend/.env'
-    command: server /data
+    command: server /data --console-address ":9001"
     volumes:
-      - minio_data:/data 
+      - minio_data:/data
     ports:
       - "${MINIO_PORT}:9000"
+      - "9001:9001"
