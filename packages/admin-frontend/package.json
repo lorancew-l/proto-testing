@@ -11,6 +11,7 @@
     "typecheck": "pnpm tsc --noEmit"
   },
   "dependencies": {
+    "@dnd-kit/abstract": "0.0.10",
     "@dnd-kit/helpers": "0.0.9",
     "@dnd-kit/react": "0.0.9",
     "@emotion/react": "11.11.4",
@@ -23,6 +24,7 @@
     "@tiptap/react": "2.11.5",
     "@tiptap/starter-kit": "2.11.5",
     "@xyflow/react": "12.4.4",
+    "date-fns": "4.1.0",
     "immer": "10.1.1",
     "jwt-decode": "^4.0.0",
     "lodash": "4.17.21",

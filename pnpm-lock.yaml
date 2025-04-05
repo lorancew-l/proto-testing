@@ -74,6 +74,9 @@ importers:
       rxjs:
         specifier: 7.8.1
         version: 7.8.1
+      shared:
+        specifier: workspace:^
+        version: link:../shared
     devDependencies:
       '@nestjs/cli':
         specifier: 10.0.0
@@ -153,6 +156,9 @@ importers:
 
   packages/admin-frontend:
     dependencies:
+      '@dnd-kit/abstract':
+        specifier: 0.0.10
+        version: 0.0.10
       '@dnd-kit/helpers':
         specifier: 0.0.9
         version: 0.0.9
@@ -189,6 +195,9 @@ importers:
       '@xyflow/react':
         specifier: 12.4.4
         version: 12.4.4(@types/react@19.0.12)(immer@10.1.1)(react-dom@19.0.0)(react@19.0.0)
+      date-fns:
+        specifier: 4.1.0
+        version: 4.1.0
       immer:
         specifier: 10.1.1
         version: 10.1.1
@@ -292,6 +301,9 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
+      shared:
+        specifier: workspace:^
+        version: link:../shared
     devDependencies:
       '@eslint/js':
         specifier: ^9.21.0
@@ -336,8 +348,8 @@ importers:
   packages/shared:
     dependencies:
       nanoid:
-        specifier: 5.0.8
-        version: 5.0.8
+        specifier: 3.3.8
+        version: 3.3.8
 
 packages:
 
@@ -804,6 +816,14 @@ packages:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
 
+  /@dnd-kit/abstract@0.0.10:
+    resolution: {integrity: sha512-tLMRmg7WSEp/IfmA2LeOVaHXoznA8VJlauWpMyH1zMw11VVmARXo65MEo33jpmxcYO7qX0sQ50vsFyJPDWEKAQ==}
+    dependencies:
+      '@dnd-kit/geometry': 0.0.10
+      '@dnd-kit/state': 0.0.10
+      tslib: 2.8.1
+    dev: false
+
   /@dnd-kit/abstract@0.0.9:
     resolution: {integrity: sha512-4FjHPOREfJJfRu0clCAnYqYc8JNHQl6CL31FjLKR+1wER+YOGkb3s3JntsqvZost5Xm/G/Z4sQ3ouLdyYQ9KdQ==}
     dependencies:
@@ -827,6 +847,13 @@ packages:
       '@dnd-kit/collision': 0.0.9
       '@dnd-kit/geometry': 0.0.9
       '@dnd-kit/state': 0.0.9
+      tslib: 2.8.1
+    dev: false
+
+  /@dnd-kit/geometry@0.0.10:
+    resolution: {integrity: sha512-GU8UJH2Flzg0O+LGk2NATimGQ3UUEyyby+3RTFQOVPq7vNFq9daFVYh7pDCOL0pZVhNMkCWLUolXFF8q1DkmKQ==}
+    dependencies:
+      '@dnd-kit/state': 0.0.10
       tslib: 2.8.1
     dev: false
 
@@ -855,6 +882,13 @@ packages:
       '@dnd-kit/state': 0.0.9
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
+      tslib: 2.8.1
+    dev: false
+
+  /@dnd-kit/state@0.0.10:
+    resolution: {integrity: sha512-H759VWyvRXlZq4IKqwbVsRAve5mRAGqmfU93M83st/zcQU695K2h5cpgkkSzkN7rjdTtdwx2+yP8TqmzZ3hcpQ==}
+    dependencies:
+      '@preact/signals-core': 1.8.0
       tslib: 2.8.1
     dev: false
 
@@ -4494,6 +4528,10 @@ packages:
       d3-transition: 3.0.1(d3-selection@3.0.0)
     dev: false
 
+  /date-fns@4.1.0:
+    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
+    dev: false
+
   /debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
     peerDependencies:
@@ -6865,14 +6903,14 @@ packages:
     hasBin: true
     dev: true
 
-  /nanoid@5.0.7:
-    resolution: {integrity: sha512-oLxFY2gd2IqnjcYyOXD8XGCftpGtZP2AbHbOkthDkvRywH5ayNtPVy9YlOPcHckXzbLTCHpkb7FB+yuxKV13pQ==}
-    engines: {node: ^18 || >=20}
+  /nanoid@3.3.8:
+    resolution: {integrity: sha512-WNLf5Sd8oZxOm+TzppcYk8gVOgP+l58xNy58D0nbUnOxOWRWvlcCV4kUF7ltmI6PsrLl/BgKEyS4mqsGChFN0w==}
+    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
     dev: false
 
-  /nanoid@5.0.8:
-    resolution: {integrity: sha512-TcJPw+9RV9dibz1hHUzlLVy8N4X9TnwirAjrU08Juo6BNKggzVfP2ZJ/3ZUSq15Xl5i85i+Z89XBO90pB2PghQ==}
+  /nanoid@5.0.7:
+    resolution: {integrity: sha512-oLxFY2gd2IqnjcYyOXD8XGCftpGtZP2AbHbOkthDkvRywH5ayNtPVy9YlOPcHckXzbLTCHpkb7FB+yuxKV13pQ==}
     engines: {node: ^18 || >=20}
     hasBin: true
     dev: false

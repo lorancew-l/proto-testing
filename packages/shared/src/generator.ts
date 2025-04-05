@@ -82,9 +82,6 @@ export const generateQuestion = <T extends Question['type']>(
 
 export const generateResearch = (): Research => {
   return {
-    id: nanoid(),
-    data: {
-      questions: [],
-    },
+    questions: [generateQuestion('single')],
   };
 };

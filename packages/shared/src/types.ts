@@ -53,8 +53,5 @@ export interface PrototypeQuestion extends BaseQuestion {
 export type Question = SingleQuestion | MultipleQuestion | RatingQuestion | PrototypeQuestion;
 
 export interface Research {
-  id: string;
-  data: {
-    questions: Question[];
-  };
+  questions: Question[];
 }

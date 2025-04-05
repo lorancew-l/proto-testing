@@ -135,7 +135,7 @@ const QuestionWrapper = ({
           </div>
 
           <div className={classes.questionText}>
-            <QuestionText path={`research.data.questions.${index}.text`} />
+            <QuestionText path={`research.questions.${index}.text`} />
           </div>
 
           <div className={classes.headerItemWrapper}>

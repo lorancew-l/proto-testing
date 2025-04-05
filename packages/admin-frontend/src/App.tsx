@@ -34,7 +34,7 @@ const RouteList = () => {
   return (
     <Routes>
       <Route element={<RequireAuth />}>
-        <Route index path="/" element={<Navigate to="/researches/new" />} />
+        <Route index path="/" element={<Navigate to="/researches" />} />
       </Route>
 
       <Route path="/researches" element={<MainPage />} />
@@ -53,11 +53,6 @@ const theme = createTheme({
     fontFamily: ['Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'].join(','),
     fontSize: 14,
   },
-  // palette: {
-  //   text: {
-  //     secondary: 'rgba(0,0,0,0.45)',
-  //   },
-  // },
 });
 
 export const App = () => {

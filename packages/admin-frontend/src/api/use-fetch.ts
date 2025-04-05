@@ -20,10 +20,19 @@ export const useFetch = <T>({ onSuccess, onError, withAuth = false }: UseFetch<T
 
   const abortController = useRef<AbortController | null>(null);
 
+  const actualOnSuccess = useRef(onSuccess);
+  actualOnSuccess.current = onSuccess;
+
+  const actualOnError = useRef(onError);
+  actualOnError.current = onError;
+
   const { getToken, refreshTokens } = useAuthContext();
 
   const fetchData = useCallback(
     async (input: RequestInfo | URL, init?: RequestInit) => {
+      const onSuccess = actualOnSuccess.current;
+      const onError = actualOnError.current;
+
       let data: T | null = null;
 
       const controller = new AbortController();
@@ -100,7 +109,7 @@ export const useFetch = <T>({ onSuccess, onError, withAuth = false }: UseFetch<T
 
       return data;
     },
-    [withAuth, getToken, onSuccess, refreshTokens, navigate, onError],
+    [withAuth, getToken, refreshTokens, navigate],
   );
 
   useEffect(() => {

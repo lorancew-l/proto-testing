@@ -4,7 +4,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "target": "es2017",
+    "target": "es2022",
     "outDir": "./dist",
     "baseUrl": "./",
     "declaration": false,

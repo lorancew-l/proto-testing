@@ -7,12 +7,12 @@ import { PrototypeScreen } from 'shared';
 
 import { Fields, useEditPageActions, useEditPageStore, useFieldController, useFieldWatch } from '../../store';
 
-const PrototypeScreenSettingsContext = createContext<{ path: `research.data.questions.${number}.screens`; index: number } | null>(
+const PrototypeScreenSettingsContext = createContext<{ path: `research.questions.${number}.screens`; index: number } | null>(
   null,
 );
 
 export const PrototypeScreenSettingsContextProvider = ({ index, children }: { index: number; children: React.ReactNode }) => {
-  const value = useMemo(() => ({ path: `research.data.questions.${index}.screens`, index }) as const, [index]);
+  const value = useMemo(() => ({ path: `research.questions.${index}.screens`, index }) as const, [index]);
   return <PrototypeScreenSettingsContext value={value}>{children}</PrototypeScreenSettingsContext>;
 };
 
@@ -68,7 +68,7 @@ export const useScreenSetValue = <T extends Path<PrototypeScreen>>(screenId: str
 export const useSubscribeScreenChanges = <T extends Path<PrototypeScreen>>(
   screenId: string,
   field: T,
-  callback: (state: FieldPathValue<Fields, `research.data.questions.${number}.screens.${number}.${T}`>) => void,
+  callback: (state: FieldPathValue<Fields, `research.questions.${number}.screens.${number}.${T}`>) => void,
 ) => {
   const path = useScreenPath(screenId, field);
 
@@ -77,7 +77,7 @@ export const useSubscribeScreenChanges = <T extends Path<PrototypeScreen>>(
   useEffect(() => {
     return useEditPageStore.subscribe(
       (state) => get(state, path) as any,
-      (state) => actualCallback.current(get(state, path)),
+      (state) => actualCallback.current(state),
     );
   }, [path]);
 };

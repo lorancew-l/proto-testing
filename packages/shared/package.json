@@ -2,10 +2,20 @@
   "name": "shared",
   "version": "1.0.0",
   "scripts": {
-    "typecheck": "pnpm tsc --noEmit"
+    "typecheck": "pnpm tsc --noEmit",
+    "build": "pnpm build:esm && pnpm build:cjs",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:cjs": "tsc --project tsconfig.cjs.json"
+  },
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "import": "./dist/esm/index.js",
+    "require": "./dist/cjs/index.js"
   },
   "license": "ISC",
   "dependencies": {
-    "nanoid": "5.0.8"
+    "nanoid": "3.3.8"
   }
 }

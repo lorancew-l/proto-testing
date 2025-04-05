@@ -3,6 +3,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { Typography } from '@mui/material';
 
+import { RestrictToVerticalAxis } from '@dnd-kit/abstract/modifiers';
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { makeStyles } from 'tss-react/mui';
@@ -116,7 +117,7 @@ const QuestionAnswer = ({
 }) => {
   const { classes, cx } = useStyles();
 
-  const { ref } = useSortable({ id, index });
+  const { ref } = useSortable({ id, index, modifiers: [RestrictToVerticalAxis] });
 
   return (
     <li className={classes.answer} ref={ref}>
@@ -125,7 +126,7 @@ const QuestionAnswer = ({
       </button>
 
       <div className={classes.answerText}>
-        <AnswerText path={`research.data.questions.${questionIndex}.answers.${index}.text`} />
+        <AnswerText path={`research.questions.${questionIndex}.answers.${index}.text`} />
       </div>
 
       <button className={cx(classes.button, classes.deleteButton)} onClick={onRemove}>
@@ -135,7 +136,7 @@ const QuestionAnswer = ({
   );
 };
 
-const AnswerText = ({ path }: { path: `research.data.questions.${number}.answers.${number}.text` }) => {
+const AnswerText = ({ path }: { path: `research.questions.${number}.answers.${number}.text` }) => {
   const { value, onChange, ref } = useFieldController(path);
 
   return <InlineRichEditor value={value ?? ''} onChange={onChange} placeholder="Введите текст ответа" ref={ref} />;

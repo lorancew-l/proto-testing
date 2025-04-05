@@ -14,7 +14,7 @@ export type Section = 'research' | 'preview' | 'stats';
 
 interface EditPageStoreState {
   section: Section;
-  research: Research;
+  research: Research & { id: string };
   publishedResearch: (Research & { publishedAt: string; publishedBy: string }) | null;
   form: {
     scheduledFocusPath: string | null;
@@ -27,6 +27,7 @@ interface EditPageStoreState {
 export type Fields = Pick<EditPageStore, 'research'>;
 
 interface EditPageStoreActions {
+  setResearch: (research: Research & { id: string }) => void;
   setSection: (section: Section) => void;
   removeQuestion: (id: string) => void;
   duplicateQuestion: (id: string) => void;
@@ -56,10 +57,8 @@ export interface EditPageStore extends EditPageStoreState {
 
 const getStoreDefaultValue = (): Omit<EditPageStore, 'actions'> => ({
   research: {
-    id: nanoid(),
-    data: {
-      questions: [generateQuestion('single'), generateQuestion('multiple'), generateQuestion('single')],
-    },
+    id: '',
+    questions: [],
   },
   publishedResearch: null,
   section: 'research',
@@ -75,6 +74,7 @@ export const useEditPageStore = create<EditPageStore>()(
       subscribeWithSelector((set, get) => ({
         ...getStoreDefaultValue(),
         actions: {
+          setResearch: (research) => set({ research }),
           form: {
             setFieldValue: (field, value) =>
               set((state) => {
@@ -135,11 +135,11 @@ export const useEditPageStore = create<EditPageStore>()(
           setSection: (section) => set({ section }),
           removeQuestion: (id) =>
             set((state) => {
-              state.research.data.questions = state.research.data.questions.filter((q) => q.id !== id);
+              state.research.questions = state.research.questions.filter((q) => q.id !== id);
             }),
           duplicateQuestion: (id) =>
             set((state) => {
-              const { questions } = state.research.data;
+              const { questions } = state.research;
               const questionToCopyIndex = questions.findIndex((q) => q.id === id);
               const questionToCopy = questions[questionToCopyIndex];
               if (!questionToCopy) return;
@@ -151,11 +151,11 @@ export const useEditPageStore = create<EditPageStore>()(
                 ...('answers' in questionToCopy && { answers: questionToCopy.answers.map((a) => ({ ...a, id: nanoid(10) })) }),
               });
 
-              state.research.data.questions = nextQuestions;
+              state.research.questions = nextQuestions;
             }),
           changeQuestionType: (id, type) =>
             set((state) => {
-              const { questions } = state.research.data;
+              const { questions } = state.research;
               const questionIndex = questions.findIndex((q) => q.id === id);
               const question = questions[questionIndex];
               if (!question) return;
@@ -171,22 +171,22 @@ export const useEditPageStore = create<EditPageStore>()(
             }),
           insertQuestion: (index) => {
             const state = get();
-            const { questions } = state.research.data;
+            const { questions } = state.research;
             const nextQuestions = [...questions];
             nextQuestions.splice(index, 0, generateQuestion('single'));
 
             set((state) => {
-              state.research.data.questions = nextQuestions;
+              state.research.questions = nextQuestions;
             });
-            state.actions.form.focus(`research.data.questions.${index}.text`);
+            state.actions.form.focus(`research.questions.${index}.text`);
           },
           appendQuestion: () => {
-            get().actions.insertQuestion(get().research.data.questions.length);
+            get().actions.insertQuestion(get().research.questions.length);
           },
           appendAnswer: (questionId) => {
             const state = get();
 
-            const { questions } = state.research.data;
+            const { questions } = state.research;
             const questionIndex = questions.findIndex((q) => q.id === questionId);
             const question = questions[questionIndex];
 
@@ -195,13 +195,13 @@ export const useEditPageStore = create<EditPageStore>()(
             const nextQuestion = { ...question, answers: [...question.answers, generateAnswer(question.type)] };
 
             set((state) => {
-              state.research.data.questions[questionIndex] = nextQuestion;
+              state.research.questions[questionIndex] = nextQuestion;
             });
-            state.actions.form.focus(`research.data.questions.${questionIndex}.answers.${nextQuestion.answers.length - 1}.text`);
+            state.actions.form.focus(`research.questions.${questionIndex}.answers.${nextQuestion.answers.length - 1}.text`);
           },
           removeAnswer: (questionId, answerId) =>
             set((state) => {
-              const { questions } = state.research.data;
+              const { questions } = state.research;
               const question = questions.find((q) => q.id === questionId);
               if (question && 'answers' in question) {
                 question.answers = question.answers.filter((a) => a.id !== answerId);
@@ -209,7 +209,7 @@ export const useEditPageStore = create<EditPageStore>()(
             }),
           moveAnswer: (questionId, event) =>
             set((state) => {
-              const { questions } = state.research.data;
+              const { questions } = state.research;
               const questionIndex = questions.findIndex((q) => q.id === questionId);
               const question = questions[questionIndex];
 
@@ -278,12 +278,12 @@ export const useFieldWatch = <T extends Path<Fields>>(path: T) => {
   return value;
 };
 
-function getQuestionIdPathFromPath(path: string): `research.data.questions.${number}.id` | null {
+function getQuestionIdPathFromPath(path: string): `research.questions.${number}.id` | null {
   const [, match] = path.match(/(research\.data\.questions\.\d+).?/) ?? [];
-  return match ? (`${match}.id` as `research.data.questions.${number}.id`) : null;
+  return match ? (`${match}.id` as `research.questions.${number}.id`) : null;
 }
 
-function getAnswerIdPathFromPath(path: string): `research.data.questions.${number}.answers.${number}.id` | null {
+function getAnswerIdPathFromPath(path: string): `research.questions.${number}.answers.${number}.id` | null {
   const [, match] = path.match(/(research\.data\.questions\.\d+\.answers\.\d+).?/) ?? [];
-  return match ? (`${match}.id` as `research.data.questions.${number}.answers.${number}.id`) : null;
+  return match ? (`${match}.id` as `research.questions.${number}.answers.${number}.id`) : null;
 }

@@ -20,6 +20,10 @@ model User {
   lastName String
 
   Token Token?
+
+  Research Research[]
+
+  ResearchGroup ResearchGroup[]
 }
 
 model Token {
@@ -30,4 +34,40 @@ model Token {
   userId String @unique
 
   user User @relation(fields: [userId], references: [id])
+}
+
+model ResearchGroup {
+  id String @id @default(uuid())
+
+  name String
+
+  ownedBy String
+
+  owner User @relation(fields: [ownedBy], references: [id])
+
+  Research Research[]
+}
+
+model Research {
+  id String @id @default(uuid())
+
+  groupId String?
+
+  name String
+
+  data Json
+
+  publishedData Json
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime?
+
+  publishedAt DateTime?
+
+  ownedBy String
+
+  owner User @relation(fields: [ownedBy], references: [id])
+
+  group ResearchGroup? @relation(fields: [groupId], references: [id])
 }

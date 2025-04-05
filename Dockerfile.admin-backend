@@ -5,6 +5,7 @@ FROM base AS build
 WORKDIR /usr/src/app
 COPY . ./
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile &&\
+  pnpm --filter shared build:cjs &&\
   pnpm --filter 'admin-backend' build &&\
   pnpm deploy --filter='admin-backend' --prod /backend &&\
   cp -r ./packages/backend/node_modules/.prisma /backend/node_modules/.prisma
