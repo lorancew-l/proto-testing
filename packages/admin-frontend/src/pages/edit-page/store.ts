@@ -28,6 +28,7 @@ export type Fields = Pick<EditPageStore, 'research'>;
 
 interface EditPageStoreActions {
   setResearch: (research: Research & { id: string }) => void;
+  getResearch: () => Research & { id: string };
   setSection: (section: Section) => void;
   removeQuestion: (id: string) => void;
   duplicateQuestion: (id: string) => void;
@@ -75,6 +76,7 @@ export const useEditPageStore = create<EditPageStore>()(
         ...getStoreDefaultValue(),
         actions: {
           setResearch: (research) => set({ research }),
+          getResearch: () => get().research,
           form: {
             setFieldValue: (field, value) =>
               set((state) => {

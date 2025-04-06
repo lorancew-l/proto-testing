@@ -196,8 +196,8 @@ const Transition = forwardRef(function Transition(
 export const PrototypeQuestion = ({ question, index }: { question: PrototypeQuestionType; index: number }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleOpen = () => setDialogOpen(true);
-  const handleClose = () => setDialogOpen(false);
+  const handleOpen = useCallback(() => setDialogOpen(true), []);
+  const handleClose = useCallback(() => setDialogOpen(false), []);
 
   return (
     <>

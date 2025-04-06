@@ -1,0 +1,71 @@
+.root {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.showTaskButton {
+  all: unset;
+  cursor: pointer;
+  position: absolute;
+  left: 0;
+  top: 70%;
+  z-index: 100;
+  color: white;
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 36px;
+  font-weight: bold;
+  font-size: 18px;
+  transform: rotate(0deg);
+}
+
+.showTaskButton:hover {
+  border-color: var(--border-hover);
+}
+
+.showTaskButton > * {
+  transition: transform 0.2s;
+  transform: rotate(0deg);
+}
+
+.showTaskButton:hover > * {
+  transform: rotate(30deg);
+}
+
+.backdrop {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.backdrop.on {
+  z-index: 0;
+}
+
+.blur {
+  transition: backdrop-filter 0.4s;
+  backdrop-filter: blur(10px) opacity(0);
+}
+
+.blur.on {
+  backdrop-filter: blur(10px) opacity(1);
+}
+
+.tint {
+  transition: background-color 0.4s;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.tint.on {
+  background-color: rgba(0, 0, 0, 0.6);
+}

@@ -3,8 +3,6 @@ import { useParams } from 'react-router';
 
 import { throttle } from 'lodash';
 
-import { makeStyles } from 'tss-react/mui';
-
 import { useGetResearchRequest, useUpdateResearchRequest } from '../../api';
 
 import { Header } from './header';
@@ -13,14 +11,6 @@ import { ResearchPage } from './research-page';
 import { StatsPage } from './stats-page';
 import { Section, useEditPageActions, useEditPageStore } from './store';
 
-const useStyles = makeStyles()((theme) => ({
-  content: {
-    margin: '0 auto',
-    width: 500,
-    padding: theme.spacing(3, 0),
-  },
-}));
-
 const sectionToComponent: Record<Section, React.ComponentType<{ isLoading: boolean }>> = {
   research: ResearchPage,
   preview: PreviewPage,
@@ -28,8 +18,6 @@ const sectionToComponent: Record<Section, React.ComponentType<{ isLoading: boole
 };
 
 export const EditPage = () => {
-  const { classes } = useStyles();
-
   const section = useEditPageStore((state) => state.section);
   const PageContent = sectionToComponent[section];
 
@@ -58,7 +46,6 @@ export const EditPage = () => {
     return useEditPageStore.subscribe(
       (state) => state.research,
       (state) => {
-        console.log('test');
         throttledUpdate(state);
       },
     );
@@ -68,9 +55,7 @@ export const EditPage = () => {
     <main>
       <Header />
 
-      <section className={classes.content}>
-        <PageContent isLoading={isLoading} />
-      </section>
+      <PageContent isLoading={isLoading} />
     </main>
   );
 };

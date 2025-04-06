@@ -1,0 +1,19 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.answerButton {
+  all: unset;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: var(--spacing-xxs);
+  border: 1px solid var(--border);
+  background-color: var(--accent);
+  color: white;
+}
+
+.answerButton:hover {
+  opacity: 0.7;
+}

@@ -6,7 +6,8 @@
     "lint": "pnpm -r lint",
     "format": "pnpm prettier --write **/*.{js,ts,css,scss,md}",
     "start:dev:admin-backend": "pnpm --filter admin-backend start:dev",
-    "start:dev:admin-frontend": "pnpm --filter admin-frontend dev"
+    "start:dev:admin-frontend": "pnpm --filter admin-frontend dev",
+    "start:dev:respondent-frontend": "pnpm --filter respondent-frontend dev"
   },
   "license": "ISC",
   "devDependencies": {

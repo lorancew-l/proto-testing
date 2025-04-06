@@ -133,7 +133,7 @@ export const MainPage = () => {
         {isListLoading
           ? range(8).map((index) => <Skeleton key={index} height={44} />)
           : researchList?.map((research) => (
-              <li key={research.id} className={classes.research}>
+              <li key={research.id} className={classes.research} onClick={() => navigate(`/researches/${research.id}`)}>
                 {research.id}
               </li>
             ))}

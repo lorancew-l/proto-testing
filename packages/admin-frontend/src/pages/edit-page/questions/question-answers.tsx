@@ -117,11 +117,11 @@ const QuestionAnswer = ({
 }) => {
   const { classes, cx } = useStyles();
 
-  const { ref } = useSortable({ id, index, modifiers: [RestrictToVerticalAxis] });
+  const { ref, handleRef } = useSortable({ id, index, modifiers: [RestrictToVerticalAxis] });
 
   return (
     <li className={classes.answer} ref={ref}>
-      <button className={classes.button}>
+      <button className={classes.button} ref={handleRef}>
         <DragIndicatorIcon color="action" fontSize="small" />
       </button>
 

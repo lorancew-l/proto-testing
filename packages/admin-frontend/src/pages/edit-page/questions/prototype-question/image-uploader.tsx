@@ -67,10 +67,10 @@ export const ImageUploader = ({ onImageUpload }: { onImageUpload: (src: string) 
 
       for (const item of items) {
         if (item.kind === 'file') {
-          const blob = item.getAsFile();
-          if (blob) {
-            const base64Image = await toBase64(blob);
-            onImageUpload(base64Image);
+          const file = item.getAsFile();
+          if (file) {
+            const result = await uploadFile(file);
+            if (result?.url) onImageUpload(result.url);
           }
 
           break;

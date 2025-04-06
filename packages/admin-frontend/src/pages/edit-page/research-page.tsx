@@ -8,7 +8,12 @@ import { makeStyles } from 'tss-react/mui';
 import { Question } from './questions/question';
 import { useEditPageStore } from './store';
 
-const useStyles = makeStyles()(() => ({
+const useStyles = makeStyles()((theme) => ({
+  content: {
+    margin: '0 auto',
+    width: 500,
+    padding: theme.spacing(3, 0),
+  },
   list: {
     all: 'unset',
     appearance: 'none',
@@ -24,18 +29,20 @@ export const ResearchPage = ({ isLoading }: { isLoading: boolean }) => {
   const questions = useEditPageStore((state) => state.research.questions);
 
   return (
-    <ol className={classes.list}>
-      {isLoading &&
-        skeletonQuestions.map((question, index) => (
-          <Skeleton sx={{ transform: 'none', marginBottom: 3 }} key={question.id} width={500} height={146}>
-            <Question question={question} index={index} last={index === skeletonQuestions.length - 1} />
-          </Skeleton>
-        ))}
+    <section className={classes.content}>
+      <ol className={classes.list}>
+        {isLoading &&
+          skeletonQuestions.map((question, index) => (
+            <Skeleton sx={{ transform: 'none', marginBottom: 3 }} key={question.id} width={500} height={146}>
+              <Question question={question} index={index} last={index === skeletonQuestions.length - 1} />
+            </Skeleton>
+          ))}
 
-      {!isLoading &&
-        questions.map((question, index) => (
-          <Question key={question.id} question={question} index={index} last={index === questions.length - 1} />
-        ))}
-    </ol>
+        {!isLoading &&
+          questions.map((question, index) => (
+            <Question key={question.id} question={question} index={index} last={index === questions.length - 1} />
+          ))}
+      </ol>
+    </section>
   );
 };

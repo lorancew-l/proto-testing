@@ -1,35 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import type { Question } from 'shared';
 
-function App() {
-  const [count, setCount] = useState(0)
+import { FinalScreen } from './final-screen';
+import { questionTypeToComponent } from './questions';
+import { QuestionProps } from './questions/types';
+import { getAnswerStackRecord } from './research-machine';
+import { useResearchSelector } from './research-machine/research-machine';
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+export const App = () => {
+  const question = useResearchSelector((context) => {
+    const questionId = context.state.questionId;
+    return context.research.questions.find((question) => question.id === questionId);
+  });
 
-export default App
+  const questionState = useResearchSelector((context) => {
+    const questionId = context.state.questionId;
+    if (!questionId) return null;
+
+    const questionState = getAnswerStackRecord(context.state.answerStack, questionId);
+    return questionState;
+  });
+
+  const finished = useResearchSelector((context) => context.state.finishedAt !== undefined);
+
+  if (finished) {
+    return <FinalScreen />;
+  }
+
+  if (!question || !questionState) return null;
+
+  const Component = questionTypeToComponent[question.type] as React.ComponentType<QuestionProps<Question['type']>>;
+  return <Component question={question} state={questionState} />;
+};

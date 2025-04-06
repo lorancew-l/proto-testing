@@ -50,6 +50,7 @@ docker run --network="host" --env-file ./packages/respondent-frontend/.env respo
 ```sh
 pnpm start:dev:admin-backend
 pnpm start:dev:admin-frontend
+pnpm start:dev:respondent-frontend
 ```
 
 ## Запуск проекта в prod-режиме
