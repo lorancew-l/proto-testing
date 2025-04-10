@@ -7,7 +7,8 @@
     "dev": "concurrently \"vite build --watch\" \"vite preview --port 3001\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck": "pnpm tsc --noEmit"
   },
   "dependencies": {
     "@xstate/react": "5.0.3",

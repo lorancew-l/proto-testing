@@ -1,12 +1,13 @@
 {
   "name": "proto-testing",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "scripts": {
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "format": "pnpm prettier --write **/*.{js,ts,css,scss,md}",
     "start:dev:admin-backend": "pnpm --filter admin-backend start:dev",
     "start:dev:admin-frontend": "pnpm --filter admin-frontend dev",
+    "start:dev:respondent-backend": "pnpm --filter respondent-backend start:dev",
     "start:dev:respondent-frontend": "pnpm --filter respondent-frontend dev"
   },
   "license": "ISC",

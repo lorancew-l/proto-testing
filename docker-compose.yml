@@ -2,6 +2,7 @@ version: '3.8'
 
 volumes:
   admin_backend_postgresdata:
+  respondent_backend_postgresdata:
   minio_data:
 
 services:
@@ -12,6 +13,14 @@ services:
       - admin_backend_postgresdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+  respondent_backend_postgres:
+    image: postgres
+    env_file: './packages/respondent-backend/.env'
+    volumes:
+      - respondent_backend_postgresdata:/var/lib/postgresql/data
+    ports:
+      - 5433:5433
+    command: -p 5433
   minio:
     image: minio/minio
     env_file: './packages/admin-backend/.env'

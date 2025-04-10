@@ -2,12 +2,10 @@ import * as fs from 'fs';
 import { Client } from 'minio';
 import * as path from 'path';
 
-import { version } from './package.json';
-
+const version = process.env.VERSION;
 const minioPort = process.env.MINIO_PORT;
 const endPoint = process.env.MINIO_ENDPOINT;
-// @ts-ignore
-const __dirname = import.meta.dirname as string;
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 if (!endPoint) throw new Error('Missing MINIO_ENDPOINT variable');
 if (!minioPort) throw new Error('Missing MINIO_PORT variable');

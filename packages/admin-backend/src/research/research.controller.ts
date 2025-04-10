@@ -53,4 +53,12 @@ export class ResearchController {
 
     return this.researchService.updateResearch(id, updateResearchDTO);
   }
+
+  @Post(':id/publish')
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AccessGuard)
+  @HttpCode(200)
+  async publishResearch(@Param('id') id: string) {
+    return this.researchService.publishResearch(id);
+  }
 }

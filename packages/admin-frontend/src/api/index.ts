@@ -7,6 +7,7 @@ export { useRefreshTokens } from './use-refresh-tokens';
 export { useCreateResearchRequest } from './use-create-research-request';
 export { useGetResearchListRequest } from './use-get-research-list-request';
 export { useGetResearchRequest } from './use-get-research-request';
+export { usePublishResearchRequest } from './use-publish-research-request';
 export { useSignInRequest } from './use-sign-in-request';
 export { useSignUpRequest } from './use-sign-up-request';
 export { useUpdateResearchRequest } from './use-update-research-request';

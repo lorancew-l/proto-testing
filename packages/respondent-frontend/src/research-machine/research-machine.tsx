@@ -33,6 +33,7 @@ const createResearchMachine = ({ context }: { context: ResearchMachineContext })
         const { answer } = event;
         const answerStackRecord = getAnswerStackRecord(state.answerStack, questionId);
 
+        // @ts-ignore
         const nextAnswerStackRecord: AnswerStackRecord = (() => {
           switch (answer.type) {
             case 'single':

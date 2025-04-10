@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictPropertyInitialization": false,
+    "target": "es2022",
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "declaration": false,
+    "isolatedModules": true
+  },
+  "extends": "../../tsconfig.json"
+}

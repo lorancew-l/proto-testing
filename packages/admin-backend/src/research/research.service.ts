@@ -1,15 +1,19 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { Prisma } from '.prisma/client';
 import { generateResearch } from 'shared';
 
 import { DatabaseService } from '../database/database.service';
 
+import { PublicationService } from './publication.service';
 import { UpdateResearchDTO } from './research.dto';
 
 @Injectable()
 export class ResearchService {
-  constructor(private databaseService: DatabaseService) {}
+  constructor(
+    private databaseService: DatabaseService,
+    private publicationService: PublicationService,
+  ) {}
 
   async createResearch(userId: string) {
     const research = await this.databaseService.research.create({
@@ -54,5 +58,20 @@ export class ResearchService {
     } catch {
       throw new NotFoundException(`Research with id ${id} not found`);
     }
+  }
+
+  async publishResearch(id: string) {
+    const research = await this.databaseService.research.findUnique({
+      where: { id },
+      select: { data: true },
+    });
+
+    const data = research?.data;
+
+    if (!data) {
+      throw new BadRequestException(`Research with id ${id} does not exists`);
+    }
+
+    return this.publicationService.publishResearch(id, data);
   }
 }

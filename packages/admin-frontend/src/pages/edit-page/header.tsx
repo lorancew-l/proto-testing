@@ -57,6 +57,10 @@ const sections = [
     name: 'Превью',
   },
   {
+    value: 'publish',
+    name: 'Публикация',
+  },
+  {
     value: 'stats',
     name: 'Отчет',
   },

@@ -7,6 +7,7 @@ import { useGetResearchRequest, useUpdateResearchRequest } from '../../api';
 
 import { Header } from './header';
 import { PreviewPage } from './preview-page';
+import { PublishPage } from './publish-page';
 import { ResearchPage } from './research-page';
 import { StatsPage } from './stats-page';
 import { Section, useEditPageActions, useEditPageStore } from './store';
@@ -14,6 +15,7 @@ import { Section, useEditPageActions, useEditPageStore } from './store';
 const sectionToComponent: Record<Section, React.ComponentType<{ isLoading: boolean }>> = {
   research: ResearchPage,
   preview: PreviewPage,
+  publish: PublishPage,
   stats: StatsPage,
 };
 

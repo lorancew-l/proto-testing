@@ -10,7 +10,7 @@ import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
-export type Section = 'research' | 'preview' | 'stats';
+export type Section = 'research' | 'preview' | 'publish' | 'stats';
 
 interface EditPageStoreState {
   section: Section;

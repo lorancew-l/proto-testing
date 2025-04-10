@@ -59,6 +59,7 @@ export const createAnswerStackRecord = (question: Question): AnswerStackRecord =
 
   return {
     questionId: question.id,
+    // @ts-ignore
     type: question.type,
     answers: [],
   };

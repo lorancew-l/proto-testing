@@ -1,0 +1,16 @@
+FROM node:20-alpine as base
+RUN corepack enable && npm install -g prisma
+
+FROM base AS build
+WORKDIR /usr/src/app
+COPY . ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile &&\
+  pnpm --filter 'respondent-backend' build &&\
+  pnpm deploy --filter='respondent-backend' --prod /backend &&\
+  cp -r ./packages/backend/node_modules/.prisma /backend/node_modules/.prisma
+
+FROM build AS backend
+COPY --from=build /backend /backend
+WORKDIR /backend
+CMD pnpm db:migrate:deploy && node dist/main.js
+EXPOSE ${APP_PORT}

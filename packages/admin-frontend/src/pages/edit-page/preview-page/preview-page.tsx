@@ -46,8 +46,8 @@ export const PreviewPage = () => {
   }, [getResearch]);
 
   return (
-    <div className={classes.research}>
+    <section className={classes.research}>
       <iframe className={classes.iframe} srcDoc={previewPage} width="100vw" height="calc(100dvh - 44px)" />
-    </div>
+    </section>
   );
 };
