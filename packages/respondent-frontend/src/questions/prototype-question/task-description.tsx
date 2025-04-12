@@ -1,3 +1,4 @@
+import { Button } from '../../ui';
 import { RichText } from '../rich-text';
 
 import styles from './task-description.module.css';
@@ -19,9 +20,9 @@ export const TaskDescription = ({
         <RichText text={description} className={styles.description} />
       </div>
 
-      <button type="button" className={styles.continueButton} onClick={onContinue}>
+      <Button className={styles.continueButton} onClick={onContinue}>
         Продолжить
-      </button>
+      </Button>
     </>
   );
 };

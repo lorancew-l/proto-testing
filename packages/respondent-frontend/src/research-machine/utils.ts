@@ -1,6 +1,7 @@
+import { nanoid } from 'nanoid';
 import type { Question, Research } from 'shared';
 
-import type { AnswerStackRecord, ResearchState } from './types';
+import type { AnswerStackRecord, PendingEvent, ResearchEvent, ResearchMachineContext, ResearchState } from './types';
 
 export const calculateNextScreen = ({ research, state }: { research: Research; state: ResearchState }): ResearchState => {
   const currentQuestionId = state.questionId;
@@ -13,7 +14,7 @@ export const calculateNextScreen = ({ research, state }: { research: Research; s
     return {
       ...state,
       questionId: undefined,
-      finishedAt: Date.now(),
+      finished: true,
     };
   }
 
@@ -50,6 +51,7 @@ export const createAnswerStackRecord = (question: Question): AnswerStackRecord =
   if (question.type === 'prototype') {
     const [firstScreen] = question.screens;
     return {
+      submitted: false,
       questionId: question.id,
       screenId: firstScreen?.id,
       type: question.type,
@@ -58,9 +60,43 @@ export const createAnswerStackRecord = (question: Question): AnswerStackRecord =
   }
 
   return {
+    submitted: false,
     questionId: question.id,
-    // @ts-ignore
     type: question.type,
     answers: [],
+  };
+};
+
+export const createResearchState = (): ResearchState => {
+  return {
+    sessionId: nanoid(),
+    answerStack: [],
+    pendingEvents: [],
+    started: false,
+    finished: false,
+  };
+};
+
+export const createInitialContext = (research: Research & { id: string }): ResearchMachineContext => {
+  return {
+    research,
+    state: createResearchState(),
+    eventSenderError: false,
+  };
+};
+
+export const createPendingEvent = (event: ResearchEvent): PendingEvent => {
+  return {
+    id: nanoid(10),
+    event,
+    status: 'scheduled',
+  };
+};
+
+export const pushPendingEvent = (state: ResearchState, event: ResearchEvent): ResearchState => {
+  const pendingEvents = state.pendingEvents;
+  return {
+    ...state,
+    pendingEvents: [...pendingEvents, createPendingEvent(event)],
   };
 };

@@ -2,15 +2,57 @@ import { createContext, useContext, useMemo } from 'react';
 
 import { useMachine, useSelector } from '@xstate/react';
 import type { Research } from 'shared';
-import { assertEvent, assign, fromPromise, setup } from 'xstate';
+import { StateValueFrom, assertEvent, assign, fromCallback, sendTo, setup } from 'xstate';
 
-import type { AnswerStackRecord, ResearchMachineContext, ResearchMachineEvents } from './types';
-import { calculateNextScreen, getAnswerStackRecord, getQuestion, updateAnswerStackRecord } from './utils';
+import { EventSenderMock, IEventSender } from './event-sender';
+import type {
+  AnswerStackRecord,
+  PendingEvent,
+  PendingEventStatusUpdate,
+  ResearchMachineContext,
+  ResearchMachineEvents,
+} from './types';
+import {
+  calculateNextScreen,
+  createInitialContext,
+  getAnswerStackRecord,
+  getQuestion,
+  pushPendingEvent,
+  updateAnswerStackRecord,
+} from './utils';
 
-const createResearchMachine = ({ context }: { context: ResearchMachineContext }) =>
+const createResearchMachine = ({ context, eventSender }: { context: ResearchMachineContext; eventSender: IEventSender }) =>
   setup({
     actors: {
-      eventSender: fromPromise(async () => {}),
+      eventSender: fromCallback<{ type: 'send-event'; event: PendingEvent | PendingEvent[] }>(({ receive, sendBack }) => {
+        receive(async (event) => {
+          assertEvent(event, 'send-event');
+          const pendingEvents = Array.isArray(event.event) ? event.event : [event.event];
+
+          const sendEvent = async (pendingEvent: PendingEvent) => {
+            try {
+              sendBack({
+                type: 'pendingEventStatusUpdate',
+                event: { ...pendingEvent, status: 'pending' },
+              } satisfies PendingEventStatusUpdate);
+              await eventSender.sendEvent(pendingEvent.event);
+              sendBack({
+                type: 'pendingEventStatusUpdate',
+                event: { ...pendingEvent, status: 'fulfilled' },
+              } satisfies PendingEventStatusUpdate);
+            } catch (error) {
+              sendBack({
+                type: 'pendingEventStatusUpdate',
+                event: { ...pendingEvent, status: 'rejected' },
+              } satisfies PendingEventStatusUpdate);
+            }
+          };
+
+          pendingEvents.map((pendingEvent) => {
+            sendEvent(pendingEvent);
+          });
+        });
+      }),
     },
     types: {} as {
       context: ResearchMachineContext;
@@ -60,50 +102,129 @@ const createResearchMachine = ({ context }: { context: ResearchMachineContext })
             default:
               // @ts-ignore
               const unknownType: never = answer.type;
-              throw new Error(`Uknknown answer type ${unknownType}`);
+              throw new Error(`Unknown answer type ${unknownType}`);
           }
         })();
 
         return {
-          state: { ...context.state, answerStack: updateAnswerStackRecord(state.answerStack, nextAnswerStackRecord) },
+          state: {
+            ...context.state,
+            started: true,
+            answerStack: updateAnswerStackRecord(state.answerStack, nextAnswerStackRecord),
+          },
         };
       }),
-      logLoadEvent: () => {},
-      logStartEvent: assign(({ context }) => {
+      scheduleLoadEvent: assign(({ context }) => {
         return {
-          state: { ...context.state, startedAt: Date.now() },
+          state: pushPendingEvent(context.state, { type: 'research-load' }),
         };
       }),
-      logFinishEvent: () => {},
-      answerQuestion: () => {},
+      scheduleStartEvent: assign(({ context }) => {
+        return {
+          state: pushPendingEvent(context.state, { type: 'research-start' }),
+        };
+      }),
+      scheduleFinishEvent: assign(({ context }) => {
+        return {
+          state: pushPendingEvent(context.state, { type: 'research-finish' }),
+        };
+      }),
+      scheduleAnswerEvent: assign(({ context }) => {
+        const answerStack = context.state.answerStack;
+        const lastRecord = answerStack[answerStack.length - 1];
+
+        return {
+          state: lastRecord
+            ? pushPendingEvent(context.state, { type: 'research-answer', questionId: lastRecord.questionId, answer: lastRecord })
+            : context.state,
+        };
+      }),
+      retryEventSending: sendTo('eventSender', ({ context }) => {
+        const failedEvents = context.state.pendingEvents.filter((event) => event.status === 'rejected');
+        return {
+          type: 'send-event',
+          event: failedEvents,
+        };
+      }),
       setValidationError: () => {},
-      setEventSenderError: () => {},
-      clearEventSenderError: () => {},
+      setEventSenderError: assign(() => ({
+        eventSenderError: true,
+      })),
+      clearEventSenderError: assign(() => ({
+        eventSenderError: false,
+      })),
       calculateNextScreen: assign(({ context }) => {
         return {
           state: calculateNextScreen(context),
         };
       }),
+      updatePendingEventStatus: assign(({ context, event }) => {
+        assertEvent(event, 'pendingEventStatusUpdate');
+
+        let nextPendingEvents = [...context.state.pendingEvents];
+
+        const eventIndex = nextPendingEvents.findIndex((pendingEvent) => pendingEvent.id === event.event.id);
+
+        if (eventIndex !== -1) {
+          nextPendingEvents[eventIndex] = event.event;
+        } else {
+          nextPendingEvents.push(event.event);
+        }
+
+        nextPendingEvents = nextPendingEvents.filter((event) => event.status !== 'fulfilled');
+
+        return {
+          state: {
+            ...context.state,
+            pendingEvents: nextPendingEvents,
+          },
+        };
+      }),
+      sendScheduledEvents: sendTo('eventSender', ({ context }) => {
+        const scheduledEvents = context.state.pendingEvents.filter((event) => event.status === 'scheduled');
+
+        return {
+          type: 'send-event',
+          event: scheduledEvents,
+        };
+      }),
     },
     guards: {
-      isNotStarted: ({ context }) => context.state.startedAt === undefined,
+      isAllEventsSend: ({ context }) => !context.state.pendingEvents.length,
+      hasScheduledEvents: ({ context }) => context.state.pendingEvents.some((event) => event.status === 'scheduled'),
+      isShouldSetErrorSendingEvents: ({ context }) => {
+        if (context.eventSenderError) return false;
+        return context.state.pendingEvents.some((event) => event.status === 'rejected');
+      },
+      isNotStarted: ({ context }) => !context.state.started,
       isValidAnswer: () => true,
-      isResearchFinished: ({ context }) => context.state.finishedAt !== undefined,
+      isResearchFinished: ({ context }) => context.state.finished,
     },
   }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QCc5gIbIMYAsB0sALpoQMQDaADALqKgAOA9rAJaEuMB2dIAHogFoAjJQBMATjwBmGaIBsADgCsEoVNFKANCACegqQoAsecVKVz5hoUsOGlSgL4PtqWBmz4AjgFc47LgDKWKhgnATeAEYAtmyEkKRuADZgWIQAgpywAO5gyFS0SCBMrP7chfwIAgDsSpKU4pSKNUrNUnLaepVCVtIKQlVS4qaGckLWVU4uaJi4eD5+HJxBIWGwkTGEcRAJYMmpGdm55EIFDMxsizwV1QqS6qKGCgpylCJSQuIdiMrS9qKiVSGVTkSkowMmIFc7lm8yIi2WYFC4WisXi6EyOTyNB4xQuXCuggBlDwlBaRlBMiqCkaVS+lQUeD6I2UgKMlFsMghUJmXl8cMCwURq3WqO26MOeROOPOpQJlVEUmJomp4lqIgU-1ElAUdJEckZ1KpbRGY2VXOmHjmfNKCKRaxRmxYnCgpAgXDAeCdADdGABrD1gL2hQgBUIQI7Ywq42XlRD9BkKhRVD5VOxGB5aXSEsQmdlmWo1WzKhTmtw8q0LAUrZEbdjO0i5ZCMZB4eiJdCEABmzaieEDwdDnHDWNORRll1jCGVUjwYzktgUBiEWsoUjpojGJPnHKEyg3q4mzkhFph1vhgqR-c4IbDuQAosgm8hSKhCMgdHeg9fBxAnVB8tKJQTqAFRyHU9jvKm6hJkYhi6sqs71KqypVKuy5VKIpbQrylZLBeqy7CkhAAHJgLwIb4RQkZnEB+KTh8xhtFIGFgv8FgKu0WaVAY+pahqwLiIujQWFh5awja+EEIRqSkeRtqcBQUpRuOdEgYIhgbiYCriBh9jiCCGiZp0Ag8XgfEAmBQlyKMThHpwjDhvAhTch4gF4mUaldO8xhqFqRbjCMnHGeYxI2EIciKqhVRUuFomWkQJBuTGnnCPI+q+eyGkBdZdImaCeDzoM5iDEC1KGHFp64fJSXAXwgiLlU0j-I8zyvGhnxcQIhgDNIqb6auOmUNqjhHi5lX8nh1b2rWkA1apdWVN1M4ahuu46VS+m0p1Iizo8ryAoY9SDPI4gVThE3yTWsR-nNHkLWoxIDEm4XPMojTLrlMh4I8ahKBqSYYd1qZnRWF2SVeN5Dvej7NrdcqpngAzAmCRiLtSDzruos4nYaG52IoI1TGWlrieeU3SSRZEUSscP0bceBKB8g0aeIWo6UF+irrt5gam0SOruVo0nvgnZOiwsA4LNym0XdoFtGZLQ2LcQ0WMCn306h-HJqq2oHrZDhAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QCc5gIbIMYAsDEADmAHYQCWxUAogG4kAuAyvevQK6wCqBErYA2gAYAuolAEA9rDL0yE4mJAAPRAA4ALOoB0qgOyqAzOsEBGDQYBMBgwBoQAT0QBaPdpPqDATgOqArADZfdRNfCwBfMLtUWAxsfCFRJBBJaVl5RRUEX103XQMTUzzBHxNdO0cEF38DLU9-QWKrL10Q8MiQaNjcLVgWZHo8BMUUmTkFJMynAs9VLQNdC08LYvVfa39y53VPQS1S4uzfHeDiiKi0TG6ARzY4NOJGLFQSHrYAIwBbGXpIPBiAGzAWHoAEFiLAAO5gZBDJIje4ZZyGXRaQSrIKGVSqar+CybSqrWpefz+JaCUIGQQ5M4dC5xLQ3O5jR7PYivT7fX4AoGg8FQmEmRLiKSjdITJEGXxaIK+IIWVTk7y6Tz4kwFHTuQLK3Ro-SrGmdS44Bm3XrMp5gF6wd5feg-CB4dB86Gw4WpMaIyoWEk6Tw5fYeJYFXz4pyWLQtNGeaOWIKWVQGunXU33FmWtnWjl235OyEuwXDEUI8Ve-wmLTy+WhfyqExGVbqVXq2vqLV+3UafyJmJGk1M+Rpq0274UKBaAjICRYODSSiDESF91i0CZCwmfwV9QWCy+PRr+VYjYOZz7VG7wykklHXQ37tdY2Ms0Di1DrOySjjyfT2CzqCDAtwkWHoluofi1OucrYts3iSqGIS7As0bLOuhhGHevaPqmL4ZsOdqjloYB0MQTAkBA0JUMgk7IHgqD0Mg9i0AwjCkaOrrJEBy7KIgviCJ40rRrW3rqDeW4qseCAmN60qaosyx1NUwnofSmHmqyPRgICwIAHJgEoTDYfOQrsUu4wroga41OitaCH4FjGBYZTiU4wkbiYniSSs2Q7Am7SGspKaqem6mafQOl6YOxD-kZ8LAWZBKeNou47gYgSqHZZaNk5qw1LiejFJJOSLLoETtMQEhkfASR+bgi6iqZXGVHW6p+qU9SqAlPirKG-g5FouUtIsNZYn6SndL0mD0LVxZxVM3oWLULS6G1HUaCGWWyjo+g6oIZa1j1xW+UmD4Bc+rJTbFDUuGBaKyqBPjYileJOUECGeGsdQ3nZsptOcPb+f2DzYeytr2udnGTMJNRpWuZh+voH1wbs7gKqUCW8V43qeKNx0AxFwMjpQYP1ZkbkokqTReKU647aGVgou1JJ1rW1hHL42N9k+gNqZmIP4ROU4zqOROel9RILNYlMtPUR4VE4yy1D1mjZOlPjeGzh1-cmuNAzzBNjoRTGkeRlESMgwslqEfECXoZitiES2I3soGeaUazKlY7MqadQXctpun6WdgEmSLDnSlYPFruSbnbk9stGPNgjyl4WKUiJB2-feWgAGYUGQsA4JA5txWSezS7KpTBGlJihqsKKSdi9S7iJ-jqCVYRAA */
     id: 'research',
     initial: 'start',
     context,
+    invoke: { id: 'eventSender', src: 'eventSender' },
+    always: {
+      guard: 'hasScheduledEvents',
+      actions: 'sendScheduledEvents',
+    },
+    on: {
+      pendingEventStatusUpdate: {
+        actions: ['updatePendingEventStatus'],
+      },
+    },
     states: {
       start: {
         always: {
           target: 'questionScreen',
-          actions: ['initResearch', 'logLoadEvent'],
+          actions: ['initResearch', 'scheduleLoadEvent'],
         },
       },
       questionScreen: {
         initial: 'submitted',
+
         states: {
           submitted: {
             on: {
@@ -111,7 +232,7 @@ const createResearchMachine = ({ context }: { context: ResearchMachineContext })
                 {
                   target: 'submitted',
                   guard: 'isNotStarted',
-                  actions: ['logStartEvent', 'selectAnswer'],
+                  actions: ['scheduleStartEvent', 'selectAnswer'],
                 },
                 {
                   target: 'submitted',
@@ -122,7 +243,7 @@ const createResearchMachine = ({ context }: { context: ResearchMachineContext })
                 {
                   guard: 'isValidAnswer',
                   target: 'submitting',
-                  actions: 'answerQuestion',
+                  actions: 'scheduleAnswerEvent',
                 },
                 {
                   target: 'submitted',
@@ -132,28 +253,35 @@ const createResearchMachine = ({ context }: { context: ResearchMachineContext })
             },
           },
           submitting: {
-            invoke: {
-              src: 'eventSender',
-              onDone: {
-                actions: ['clearEventSenderError', 'calculateNextScreen'],
-                target: 'selectNextScreen',
+            initial: 'processing',
+            states: {
+              processing: {
+                always: [
+                  {
+                    target: '#research.questionScreen.selectNextScreen',
+                    guard: 'isAllEventsSend',
+                    actions: ['clearEventSenderError', 'calculateNextScreen'],
+                  },
+                  {
+                    target: 'eventSenderError',
+                    guard: 'isShouldSetErrorSendingEvents',
+                    actions: 'setEventSenderError',
+                  },
+                ],
               },
-              onError: {
-                actions: 'setEventSenderError',
-                target: 'eventSenderError',
-              },
-            },
-          },
-          eventSenderError: {
-            on: {
-              retryEventSending: {
-                target: 'submitting',
+              eventSenderError: {
+                on: {
+                  retryEventSending: {
+                    target: 'processing',
+                    actions: 'retryEventSending',
+                  },
+                },
               },
             },
           },
           selectNextScreen: {
             always: [
-              { guard: 'isResearchFinished', target: '#research.finished', actions: 'logFinishEvent' },
+              { guard: 'isResearchFinished', target: '#research.finished', actions: 'scheduleFinishEvent' },
               { target: 'submitted' },
             ],
           },
@@ -165,18 +293,15 @@ const createResearchMachine = ({ context }: { context: ResearchMachineContext })
     },
   });
 
-const createIntitalContext = (research: Research & { id: string }): ResearchMachineContext => {
-  return {
-    research,
-    state: {
-      answerStack: [],
-      pendingEvents: [],
-    },
-  };
-};
-
 const useResearchMachine = (research: Research & { id: string }) => {
-  const machine = useMemo(() => createResearchMachine({ context: createIntitalContext(research) }), [research]);
+  const machine = useMemo(() => {
+    const context = createInitialContext(research);
+    const eventSender = new EventSenderMock({ sessionId: context.state.sessionId, researchId: research.id });
+    return createResearchMachine({
+      context: createInitialContext(research),
+      eventSender,
+    });
+  }, [research]);
   const [state, send, actor] = useMachine(machine);
   return { state, send, actor };
 };
@@ -203,4 +328,13 @@ export const ResearchMachineContextProvider = ({
 export const useResearchSelector = <T,>(selector: (context: ResearchMachineContext) => T) => {
   const { actor } = useResearchMachineContext();
   return useSelector(actor, (state) => selector(state.context));
+};
+
+export const useResearchStatePredicate = (expectedState: StateValueFrom<ReturnType<typeof createResearchMachine>>): boolean => {
+  const { actor } = useResearchMachineContext();
+  return useSelector(actor, (state) => state.matches(expectedState));
+};
+
+export const useIsSubmittingAnswer = () => {
+  return useResearchStatePredicate({ questionScreen: { submitting: 'processing' } });
 };

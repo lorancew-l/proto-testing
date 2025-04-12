@@ -1,8 +1,12 @@
 import OkIcon from '../../assets/ok.svg?react';
+import { useIsSubmittingAnswer } from '../../research-machine/research-machine';
+import { Button } from '../../ui';
 
 import styles from './task-success.module.css';
 
 export const TaskSuccess = ({ onContinue }: { onContinue: VoidFunction }) => {
+  const submitting = useIsSubmittingAnswer();
+
   return (
     <div className={styles.container}>
       <span className={styles.message}>
@@ -10,9 +14,9 @@ export const TaskSuccess = ({ onContinue }: { onContinue: VoidFunction }) => {
         Вы успешно выполнили задание!
       </span>
 
-      <button type="button" className={styles.continueButton} onClick={onContinue}>
+      <Button loading={submitting} className={styles.continueButton} onClick={onContinue}>
         Продолжить
-      </button>
+      </Button>
     </div>
   );
 };

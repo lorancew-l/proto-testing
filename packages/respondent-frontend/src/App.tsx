@@ -5,6 +5,7 @@ import { questionTypeToComponent } from './questions';
 import { QuestionProps } from './questions/types';
 import { getAnswerStackRecord } from './research-machine';
 import { useResearchSelector } from './research-machine/research-machine';
+import { SendEventErrorScreen } from './send-event-error-screen';
 
 export const App = () => {
   const question = useResearchSelector((context) => {
@@ -20,7 +21,12 @@ export const App = () => {
     return questionState;
   });
 
-  const finished = useResearchSelector((context) => context.state.finishedAt !== undefined);
+  const finished = useResearchSelector((context) => context.state.finished);
+  const eventSenderError = useResearchSelector((context) => context.eventSenderError);
+
+  if (eventSenderError) {
+    return <SendEventErrorScreen />;
+  }
 
   if (finished) {
     return <FinalScreen />;
