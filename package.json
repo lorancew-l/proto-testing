@@ -8,9 +8,10 @@
     "start:dev:admin-backend": "pnpm --filter admin-backend start:dev",
     "start:dev:admin-frontend": "pnpm --filter admin-frontend dev",
     "start:dev:respondent-backend": "pnpm --filter respondent-backend start:dev",
-    "start:dev:respondent-frontend": "pnpm --filter respondent-frontend dev"
+    "start:dev:respondent-frontend": "pnpm --filter respondent-frontend dev",
+    "start:dev:event-collector": "pnpm --filter event-collector dev"
   },
-  "license": "ISC",
+  "private": true,
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "4.3.0",
     "lefthook": "1.6.1",

@@ -4,7 +4,7 @@ import { useMachine, useSelector } from '@xstate/react';
 import type { Research } from 'shared';
 import { StateValueFrom, assertEvent, assign, fromCallback, sendTo, setup } from 'xstate';
 
-import { EventSenderMock, IEventSender } from './event-sender';
+import { EventSender, IEventSender } from './event-sender';
 import type {
   AnswerStackRecord,
   PendingEvent,
@@ -41,6 +41,8 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
                 event: { ...pendingEvent, status: 'fulfilled' },
               } satisfies PendingEventStatusUpdate);
             } catch (error) {
+              await new Promise((resolve) => setTimeout(resolve, 500));
+              console.log('REJECT!');
               sendBack({
                 type: 'pendingEventStatusUpdate',
                 event: { ...pendingEvent, status: 'rejected' },
@@ -193,15 +195,19 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
       isAllEventsSend: ({ context }) => !context.state.pendingEvents.length,
       hasScheduledEvents: ({ context }) => context.state.pendingEvents.some((event) => event.status === 'scheduled'),
       isShouldSetErrorSendingEvents: ({ context }) => {
-        if (context.eventSenderError) return false;
-        return context.state.pendingEvents.some((event) => event.status === 'rejected');
+        console.log('test', context.state.pendingEvents);
+        return (
+          !context.state.pendingEvents.some((event) => event.status === 'pending' || event.status === 'scheduled') &&
+          context.state.pendingEvents.some((event) => event.status === 'rejected')
+        );
       },
+      hasPendingEvents: ({ context }) => context.state.pendingEvents.some((event) => event.status === 'pending'),
       isNotStarted: ({ context }) => !context.state.started,
       isValidAnswer: () => true,
       isResearchFinished: ({ context }) => context.state.finished,
     },
   }).createMachine({
-    /** @xstate-layout N4IgpgJg5mDOIC5QCc5gIbIMYAsDEADmAHYQCWxUAogG4kAuAyvevQK6wCqBErYA2gAYAuolAEA9rDL0yE4mJAAPRAA4ALOoB0qgOyqAzOsEBGDQYBMBgwBoQAT0QBaPdpPqDATgOqArADZfdRNfCwBfMLtUWAxsfCFRJBBJaVl5RRUEX103XQMTUzzBHxNdO0cEF38DLU9-QWKrL10Q8MiQaNjcLVgWZHo8BMUUmTkFJMynAs9VLQNdC08LYvVfa39y53VPQS1S4uzfHeDiiKi0TG6ARzY4NOJGLFQSHrYAIwBbGXpIPBiAGzAWHoAEFiLAAO5gZBDJIje4ZZyGXRaQSrIKGVSqar+CybSqrWpefz+JaCUIGQQ5M4dC5xLQ3O5jR7PYivT7fX4AoGg8FQmEmRLiKSjdITJEGXxaIK+IIWVTk7y6Tz4kwFHTuQLK3Ro-SrGmdS44Bm3XrMp5gF6wd5feg-CB4dB86Gw4WpMaIyoWEk6Tw5fYeJYFXz4pyWLQtNGeaOWIKWVQGunXU33FmWtnWjl235OyEuwXDEUI8Ve-wmLTy+WhfyqExGVbqVXq2vqLV+3UafyJmJGk1M+Rpq0274UKBaAjICRYODSSiDESF91i0CZCwmfwV9QWCy+PRr+VYjYOZz7VG7wykklHXQ37tdY2Ms0Di1DrOySjjyfT2CzqCDAtwkWHoluofi1OucrYts3iSqGIS7As0bLOuhhGHevaPqmL4ZsOdqjloYB0MQTAkBA0JUMgk7IHgqD0Mg9i0AwjCkaOrrJEBy7KIgviCJ40rRrW3rqDeW4qseCAmN60qaosyx1NUwnofSmHmqyPRgICwIAHJgEoTDYfOQrsUu4wroga41OitaCH4FjGBYZTiU4wkbiYniSSs2Q7Am7SGspKaqem6mafQOl6YOxD-kZ8LAWZBKeNou47gYgSqHZZaNk5qw1LiejFJJOSLLoETtMQEhkfASR+bgi6iqZXGVHW6p+qU9SqAlPirKG-g5FouUtIsNZYn6SndL0mD0LVxZxVM3oWLULS6G1HUaCGWWyjo+g6oIZa1j1xW+UmD4Bc+rJTbFDUuGBaKyqBPjYileJOUECGeGsdQ3nZsptOcPb+f2DzYeytr2udnGTMJNRpWuZh+voH1wbs7gKqUCW8V43qeKNx0AxFwMjpQYP1ZkbkokqTReKU647aGVgou1JJ1rW1hHL42N9k+gNqZmIP4ROU4zqOROel9RILNYlMtPUR4VE4yy1D1mjZOlPjeGzh1-cmuNAzzBNjoRTGkeRlESMgwslqEfECXoZitiES2I3soGeaUazKlY7MqadQXctpun6WdgEmSLDnSlYPFruSbnbk9stGPNgjyl4WKUiJB2-feWgAGYUGQsA4JA5txWSezS7KpTBGlJihqsKKSdi9S7iJ-jqCVYRAA */
+    /** @xstate-layout N4IgpgJg5mDOIC5QCc5gIbIMYAsDEADmAHYQCWxUAogG4kAuAyvevQK6wCqBErYA2gAYAuolAEA9rDL0yE4mJAAPRAA4ALOoB0qgOyqAzOsEBGDQYBMBgwBoQAT0QBaPdpPqDATgOqArADZfdRNfCwBfMLtUWAxsfCFRJBBJaVl5RRUEX103XQMTUzzBHxNdO0cEF38DLU9-QWKrL10Q8MiQaNjcLVgWZHo8BMUUmTkFJMynAs9VLQNdC08LYvVfa39y53VPQS1S4uzfHeDiiKi0TG6ARzY4NOJGLFQSHrYAIwBbGXpIPBiAGzAWHoAEFiLAAO5gZBDJIje4ZZyGXRaQSrIKGVSqar+CybSqrWpefz+JaCUIGQQ5M4dC5xLQ3O5jR7PYivT7fX4AoGg8FQmEmRLiKSjdITJEGXxaIK+IIWVTk7y6Tz4kwFHTuQLK3Ro-SrGmdS44Bm3XrMp5gF6wd5feg-CB4dB86Gw4WpMaIyoWEk6Tw5fYeJYFXz4pyWLQtNGeaOWIKWVQGunXU33FmWtnWjl235OyEuwXDEUI8Ve-wmLTy+WhfyqExGVbqVXq2vqLV+3UafyJmJGk1M+Rpq0274UKBaAjICRYODSSiDESF91i0CZCwmfwV9QWCy+PRr+VYjYOZz7VG7wykklHXQ37tdY2Ms0Di1DrOySjjyfT2CzqCDAtwkWHolrKG7yv4miRi0mgmKGIQbqoiz+MqBiBIISyGHevaPqmL4ZsOdqjloYB0MQTAkBA0JUMgk7IHgqD0Mg9i0AwjAUaOrrJEBy7KIgvghNKviCMsGGSqEIbHggdZSuufpBuhRxHFh9I4earLsra75jiRrEUVRNESHRnHwsBK6IMEKKajsdTZOSa5HhUUw1JSOToXUl5qtGynJv2Dx4T0YCAsCAByYBKEweHzkKXFLuMZkIGuNTorWgh+BYxgWGUklOOougbiYngmMsRjZDsCbtIaKkpmp6YBUF9CheFg7EP+0UmTxkzbNou47qhPWtu4oarDUuJ6MURU5IsugRO0xASJR8BJJVuCLqKcW8ZUdbqn6pT1KongeBoEmOch2ijYEa5FIYnjecavSYPQq3FvFUzehYtQtHlqUHT4qxDbKOj6DqghlrWyHTRVSYPtVz6sk9pkbS4fioui6iYtiqF4tlQS7Mqawkohej8TdkM9lVvnNRpnIQPDHVbHkOjbmq+03vtyFwbs7gKqUB3oV43ok+cZM+U+fnqZmmmjrT62ZAVKJKk0XilOuIOhulNTRtUHggxBITCbdfai5TEsjh+E5TjOUuAbFnrpVKCvWErLT1A5zjLLUp2rAsrY+N4vgG6psO1SbhEfjpZFsaQ+m0dLnq4jUaLrriax+IErtersdQ5MDxS-YLtLC9DFP+dyIVhRFcPW2ttuZdKVhCWu5IFduWOOUY73CddWIudnBsAGYUGQsA4JAsclmSewu7KpTBIhsHZV7ezgfUu43q26gzWEQA */
     id: 'research',
     initial: 'start',
     context,
@@ -270,6 +276,7 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
                 ],
               },
               eventSenderError: {
+                always: [{ guard: 'hasPendingEvents', target: 'processing' }],
                 on: {
                   retryEventSending: {
                     target: 'processing',
@@ -287,22 +294,25 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
           },
         },
       },
-      finished: {
-        type: 'final',
-      },
+      finished: {},
     },
   });
 
 const useResearchMachine = (research: Research & { id: string }) => {
   const machine = useMemo(() => {
     const context = createInitialContext(research);
-    const eventSender = new EventSenderMock({ sessionId: context.state.sessionId, researchId: research.id });
+    const eventSender = new EventSender({
+      sessionId: context.state.sessionId,
+      researchId: research.id,
+      appName: import.meta.env.PROD ? 'respondent-frontend' : 'test',
+    });
     return createResearchMachine({
       context: createInitialContext(research),
       eventSender,
     });
   }, [research]);
   const [state, send, actor] = useMachine(machine);
+  console.log(state.context.state);
   return { state, send, actor };
 };
 

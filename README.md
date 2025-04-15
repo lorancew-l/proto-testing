@@ -15,7 +15,7 @@ cp ./packages/admin-backend/.env.example ./packages/admin-backend/.env && cp ./p
 ## Запуск контейнеров
 
 ```sh
-docker compose --env-file ./packages/admin-backend/.env up -d
+docker compose up -d
 ```
 
 ## База данных

@@ -8,6 +8,7 @@ export interface IEventSender {
 export interface CommonData {
   sessionId: string;
   researchId: string;
+  appName: string;
 }
 
 interface EventSenderEvent extends CommonData {
@@ -29,6 +30,9 @@ export class EventSender implements IEventSender {
         ...eventData,
         ...this.commonData,
       } satisfies EventSenderEvent),
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
   }
 

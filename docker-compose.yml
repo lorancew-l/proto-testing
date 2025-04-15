@@ -4,6 +4,7 @@ volumes:
   admin_backend_postgresdata:
   respondent_backend_postgresdata:
   minio_data:
+  clickhouse_data:
 
 services:
   admin_backend_postgres:
@@ -28,5 +29,12 @@ services:
     volumes:
       - minio_data:/data
     ports:
-      - "${MINIO_PORT}:9000"
-      - "9001:9001"
+      - 9000:9000
+      - 9001:9001
+  clickhouse:
+    image: yandex/clickhouse-server:latest
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    env_file: './packages/event-collector/.env'
+    ports:
+      - 8123:8123

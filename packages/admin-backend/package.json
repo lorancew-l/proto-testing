@@ -1,10 +1,7 @@
 {
   "name": "admin-backend",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "0.0.0",
   "private": true,
-  "license": "UNLICENSED",
   "scripts": {
     "start": "nest start",
     "start:dev": "nest start --watch",
