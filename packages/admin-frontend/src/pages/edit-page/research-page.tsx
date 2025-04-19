@@ -1,9 +1,13 @@
-import { range } from 'lodash';
+import { useEffect } from 'react';
+
+import { range, throttle } from 'lodash';
 
 import { Skeleton } from '@mui/material';
 
 import { generateQuestion } from 'shared';
 import { makeStyles } from 'tss-react/mui';
+
+import { useUpdateResearchRequest } from '../../api';
 
 import { Question } from './questions/question';
 import { useEditPageStore } from './store';
@@ -28,20 +32,32 @@ export const ResearchPage = ({ isLoading }: { isLoading: boolean }) => {
   const { classes } = useStyles();
   const questions = useEditPageStore((state) => state.research.questions);
 
+  const { updateResearch } = useUpdateResearchRequest();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const throttledUpdate = throttle(updateResearch, 5000);
+
+    return useEditPageStore.subscribe(
+      (state) => state.research,
+      (state) => {
+        throttledUpdate(state);
+      },
+    );
+  }, [isLoading]);
+
   return (
     <section className={classes.content}>
       <ol className={classes.list}>
         {isLoading &&
           skeletonQuestions.map((question, index) => (
             <Skeleton sx={{ transform: 'none', marginBottom: 3 }} key={question.id} width={500} height={146}>
-              <Question question={question} index={index} last={index === skeletonQuestions.length - 1} />
+              <Question question={question} index={index} />
             </Skeleton>
           ))}
 
-        {!isLoading &&
-          questions.map((question, index) => (
-            <Question key={question.id} question={question} index={index} last={index === questions.length - 1} />
-          ))}
+        {!isLoading && questions.map((question, index) => <Question key={question.id} question={question} index={index} />)}
       </ol>
     </section>
   );

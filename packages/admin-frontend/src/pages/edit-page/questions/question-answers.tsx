@@ -117,6 +117,7 @@ const QuestionAnswer = ({
 }) => {
   const { classes, cx } = useStyles();
 
+  // @ts-ignore
   const { ref, handleRef } = useSortable({ id, index, modifiers: [RestrictToVerticalAxis] });
 
   return (

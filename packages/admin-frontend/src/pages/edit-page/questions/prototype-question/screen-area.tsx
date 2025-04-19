@@ -36,7 +36,6 @@ export const ScreenArea = ({
   imageRef,
   selected,
   onSelect,
-  onRemove,
 }: {
   id: string;
   screenId: string;
@@ -44,7 +43,6 @@ export const ScreenArea = ({
   path: `data.areas.${number}`;
   imageRef: RefObject<HTMLElement | null>;
   onSelect: (id: string) => void;
-  onRemove: (id: string) => void;
 }) => {
   const { classes } = useStyles();
   const handlers = useAreaDrag({ screenId, path: `${path}.rect`, imageRef });

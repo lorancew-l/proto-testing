@@ -1,9 +1,5 @@
 import { useState } from 'react';
 
-import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import GradeIcon from '@mui/icons-material/Grade';
-import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
-import WebIcon from '@mui/icons-material/Web';
 import { alpha } from '@mui/material';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -11,14 +7,8 @@ import MenuItem from '@mui/material/MenuItem';
 import { Question } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
+import { questionTypeToIcon } from '../common';
 import { useEditPageActions } from '../store';
-
-const typeToIcon: Record<Question['type'], React.ComponentType<{ className?: string }>> = {
-  single: RadioButtonCheckedIcon,
-  multiple: CheckBoxIcon,
-  rating: GradeIcon,
-  prototype: WebIcon,
-};
 
 const typeToTitle: Record<Question['type'], string> = {
   single: 'Одиночный выбор',
@@ -76,7 +66,7 @@ export const QuestionTypeSelect = ({ id, type }: { id: string; type: Question['t
 
   const { changeQuestionType } = useEditPageActions();
 
-  const Icon = typeToIcon[type];
+  const Icon = questionTypeToIcon[type];
 
   const [anchorElement, setAnchorElement] = useState<null | HTMLElement>(null);
 
@@ -100,7 +90,7 @@ export const QuestionTypeSelect = ({ id, type }: { id: string; type: Question['t
       </button>
 
       <Menu className={classes.menu} open={!!anchorElement} anchorEl={anchorElement} onClose={handleClose}>
-        {Object.entries(typeToIcon).map(([questionType, Icon]) => (
+        {Object.entries(questionTypeToIcon).map(([questionType, Icon]) => (
           <MenuItem
             key={questionType}
             onClick={() => handleTypeSelect(questionType as Question['type'])}

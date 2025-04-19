@@ -94,11 +94,11 @@ const questionTypeToComponent: {
   prototype: PrototypeQuestion,
 };
 
-export const Question = memo(({ question, index, last }: { question: ResearchQuestion; index: number; last: boolean }) => {
+export const Question = memo(({ question, index }: { question: ResearchQuestion; index: number }) => {
   const Component = questionTypeToComponent[question.type] as React.ComponentType<{ question: ResearchQuestion; index: number }>;
 
   return (
-    <QuestionWrapper id={question.id} index={index} type={question.type} last={last}>
+    <QuestionWrapper id={question.id} index={index} type={question.type}>
       <Component question={question} index={index} />
     </QuestionWrapper>
   );
@@ -109,13 +109,11 @@ Question.displayName = 'Question';
 const QuestionWrapper = ({
   id,
   type,
-  last,
   index,
   children,
 }: {
   id: string;
   type: ResearchQuestion['type'];
-  last: boolean;
   index: number;
   children: React.ReactNode;
 }) => {

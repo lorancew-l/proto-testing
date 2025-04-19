@@ -18,7 +18,6 @@ import {
   OnNodesChange,
   ReactFlow,
   ReactFlowProvider,
-  applyEdgeChanges,
   applyNodeChanges,
   useReactFlow,
 } from '@xyflow/react';
@@ -126,9 +125,7 @@ const PrototypeScreenSetup = ({ screens, onClose }: { screens: PrototypeScreenTy
     setFieldValue(path, applyNodeChanges(changes, cloneDeep(getFieldValue(path))));
   };
 
-  const handleEdgesChange: OnEdgesChange = (changes) => {
-    const appliedChanges = applyEdgeChanges(changes, edges);
-  };
+  const handleEdgesChange: OnEdgesChange = () => {};
 
   const onConnect = useCallback((params: Connection) => {
     const [screenId, areaId] = params.sourceHandle?.split('.') ?? [];

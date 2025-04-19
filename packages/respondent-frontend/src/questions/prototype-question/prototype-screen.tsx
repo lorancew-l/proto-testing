@@ -1,5 +1,6 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
+import { nanoid } from 'nanoid';
 import type { PrototypeArea, PrototypeScreen as PrototypeScreenType } from 'shared';
 
 import { useResearchMachineContext } from '../../research-machine';
@@ -8,6 +9,9 @@ import styles from './prototype-screen.module.css';
 
 export const PrototypeScreen = ({ screen }: { screen: PrototypeScreenType }) => {
   const { send } = useResearchMachineContext();
+
+  const screenStartTime = useMemo(() => Date.now(), [screen.id]);
+  const ssid = useMemo(() => nanoid(10), [screen.id]);
 
   const imageRef = useRef<HTMLImageElement | null>(null);
 
@@ -27,7 +31,16 @@ export const PrototypeScreen = ({ screen }: { screen: PrototypeScreenType }) => 
     const clickPosition = calculateClickRelativePosition(event);
 
     if (clickPosition) {
-      send({ type: 'selectAnswer', answer: { type: 'prototype', click: { ...clickPosition, area } } });
+      send({
+        type: 'selectAnswer',
+        answer: {
+          type: 'prototype',
+          ssid,
+          screenId: screen.id,
+          screenTime: Date.now() - screenStartTime,
+          click: { ...clickPosition, area },
+        },
+      });
     }
   };
 

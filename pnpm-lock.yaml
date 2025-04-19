@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  heatmap.js@2.0.5:
+    hash: py2e3fe4jisgrtal4wryag3g6u
+    path: patches/heatmap.js@2.0.5.patch
+
 importers:
 
   .:
@@ -20,6 +25,9 @@ importers:
 
   packages/admin-backend:
     dependencies:
+      '@clickhouse/client':
+        specifier: 1.11.0
+        version: 1.11.0
       '@nestjs/common':
         specifier: 10.0.0
         version: 10.0.0(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.2.0)(rxjs@7.8.1)
@@ -122,13 +130,13 @@ importers:
         version: 9.0.0(eslint@8.32.0)
       eslint-plugin-prettier:
         specifier: 5.0.0
-        version: 5.0.0(eslint-config-prettier@9.0.0)(eslint@8.32.0)(prettier@3.0.0)
+        version: 5.0.0(eslint-config-prettier@9.0.0)(eslint@8.32.0)(prettier@3.5.3)
       jest:
         specifier: 29.5.0
         version: 29.5.0(@types/node@20.3.1)(ts-node@10.9.1)
       prettier:
-        specifier: 3.0.0
-        version: 3.0.0
+        specifier: 3.5.3
+        version: 3.5.3
       prisma:
         specifier: 5.19.1
         version: 5.19.1
@@ -198,6 +206,9 @@ importers:
       date-fns:
         specifier: 4.1.0
         version: 4.1.0
+      heatmap.js:
+        specifier: 2.0.5
+        version: 2.0.5(patch_hash=py2e3fe4jisgrtal4wryag3g6u)
       immer:
         specifier: 10.1.1
         version: 10.1.1
@@ -247,6 +258,9 @@ importers:
       '@eslint/js':
         specifier: ^9.21.0
         version: 9.23.0
+      '@types/heatmap.js':
+        specifier: ^2.0.41
+        version: 2.0.41
       '@types/lodash':
         specifier: ^4.17.16
         version: 4.17.16
@@ -367,13 +381,13 @@ importers:
         version: 9.0.0(eslint@8.32.0)
       eslint-plugin-prettier:
         specifier: 5.0.0
-        version: 5.0.0(eslint-config-prettier@9.0.0)(eslint@8.32.0)(prettier@3.0.0)
+        version: 5.0.0(eslint-config-prettier@9.0.0)(eslint@8.32.0)(prettier@3.5.3)
       jest:
         specifier: 29.5.0
         version: 29.5.0(@types/node@20.3.1)(ts-node@10.9.1)
       prettier:
-        specifier: 3.0.0
-        version: 3.0.0
+        specifier: 3.5.3
+        version: 3.5.3
       source-map-support:
         specifier: 0.5.21
         version: 0.5.21
@@ -3267,10 +3281,20 @@ packages:
       '@types/qs': 6.9.18
       '@types/serve-static': 1.15.7
 
+  /@types/geojson@7946.0.16:
+    resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
+    dev: true
+
   /@types/graceful-fs@4.1.9:
     resolution: {integrity: sha512-olP3sd1qOEe5dXTSaFvQG+02VdRXcdytWLAZsAq1PecU8uqQAhkrnbli7DagjtXKW/Bl7YJbUsa8MPcuc8LHEQ==}
     dependencies:
       '@types/node': 20.3.1
+    dev: true
+
+  /@types/heatmap.js@2.0.41:
+    resolution: {integrity: sha512-3oHffxC+N+1EKXjeC65klk1kHnLJ5i6tEKFNb/04J+qSfQuCliacsNBWDpt59JfG2vBXRRn+ICbzRZj48j6HfQ==}
+    dependencies:
+      '@types/leaflet': 0.7.40
     dev: true
 
   /@types/http-errors@2.0.4:
@@ -3307,6 +3331,12 @@ packages:
     resolution: {integrity: sha512-VRLSGzik+Unrup6BsouBeHsf4d1hOEgYWTm/7Nmw1sXoN1+tRly/Gy/po3yeahnP4jfnQWWAhQAqcNfH7ngOkA==}
     dependencies:
       '@types/node': 20.3.1
+
+  /@types/leaflet@0.7.40:
+    resolution: {integrity: sha512-R2UwXOKwnKZi9zNm37WbPTAVuqHmysE6NVihkc5DUrovTirUxFSbZzvXrlwv0n5sibe0w8VF1bWu0ta4kZlAaA==}
+    dependencies:
+      '@types/geojson': 7946.0.16
+    dev: true
 
   /@types/linkify-it@5.0.0:
     resolution: {integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==}
@@ -5291,6 +5321,27 @@ packages:
       synckit: 0.8.8
     dev: true
 
+  /eslint-plugin-prettier@5.0.0(eslint-config-prettier@9.0.0)(eslint@8.32.0)(prettier@3.5.3):
+    resolution: {integrity: sha512-AgaZCVuYDXHUGxj/ZGu1u8H8CYgDY3iG6w5kUFw4AzMVXzB7VvbKgYR4nATIN+OvUrghMbiDLeimVjVY5ilq3w==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    peerDependencies:
+      '@types/eslint': '>=8.0.0'
+      eslint: '>=8.0.0'
+      eslint-config-prettier: '*'
+      prettier: '>=3.0.0'
+    peerDependenciesMeta:
+      '@types/eslint':
+        optional: true
+      eslint-config-prettier:
+        optional: true
+    dependencies:
+      eslint: 8.32.0
+      eslint-config-prettier: 9.0.0(eslint@8.32.0)
+      prettier: 3.5.3
+      prettier-linter-helpers: 1.0.0
+      synckit: 0.8.8
+    dev: true
+
   /eslint-plugin-react-hooks@5.2.0(eslint@9.23.0):
     resolution: {integrity: sha512-+f15FfK64YQwZdJNELETdn5ibXEUQmW1DZL6KXhNnc2heoy/sg9VJJeT7n8TlMWouzWqSWavFkIhHyIbIAEapg==}
     engines: {node: '>=10'}
@@ -6075,6 +6126,11 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       function-bind: 1.1.2
+
+  /heatmap.js@2.0.5(patch_hash=py2e3fe4jisgrtal4wryag3g6u):
+    resolution: {integrity: sha512-CG2gYFP5Cv9IQCXEg3ZRxnJDyAilhWnQlAuHYGuWVzv6mFtQelS1bR9iN80IyDmFECbFPbg6I0LR5uAFHgCthw==}
+    dev: false
+    patched: true
 
   /hexoid@2.0.0:
     resolution: {integrity: sha512-qlspKUK7IlSQv2o+5I7yhUd7TxlOG2Vr5LTa3ve2XSNVKAL/n/u/7KLvKmFNimomDIKvZFXWHv0T12mv7rT8Aw==}

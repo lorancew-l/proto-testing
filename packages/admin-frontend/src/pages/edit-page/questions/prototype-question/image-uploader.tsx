@@ -7,14 +7,6 @@ import { makeStyles } from 'tss-react/mui';
 
 import { useUploadFileRequest } from '../../../../api';
 
-const toBase64 = (file: File): Promise<string> =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result?.toString() ?? '');
-    reader.onerror = reject;
-  });
-
 const useStyles = makeStyles()((theme) => ({
   container: {
     display: 'flex',

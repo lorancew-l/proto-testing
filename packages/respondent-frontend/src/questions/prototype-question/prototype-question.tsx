@@ -16,13 +16,12 @@ export const PrototypeQuestion = ({ question, state }: QuestionProps<'prototype'
   const { send } = useResearchMachineContext();
 
   const currentScreen = state.screenId ? question.screens.find((screen) => screen.id === state.screenId) : null;
-
-  const isTargetReached = !!currentScreen && currentScreen.data.areas.every((area) => !area.goToScreenId);
+  const completed = state.type === 'prototype' && state.completed;
 
   return (
     <div className={styles.root}>
-      <Sidebar open={taskDescriptionOpen || isTargetReached}>
-        {isTargetReached ? (
+      <Sidebar open={taskDescriptionOpen || completed}>
+        {completed ? (
           <TaskSuccess onContinue={() => send({ type: 'answer' })} />
         ) : (
           <TaskDescription title={question.text} description="Placeholder" onContinue={() => setTaskDescriptionOpen(false)} />
@@ -39,9 +38,9 @@ export const PrototypeQuestion = ({ question, state }: QuestionProps<'prototype'
 
       <div
         className={cn(styles.backdrop, {
-          [styles.blur]: !isTargetReached,
-          [styles.tint]: isTargetReached,
-          [styles.on]: taskDescriptionOpen || isTargetReached,
+          [styles.blur]: !completed,
+          [styles.tint]: completed,
+          [styles.on]: taskDescriptionOpen || completed,
         })}
       />
     </div>

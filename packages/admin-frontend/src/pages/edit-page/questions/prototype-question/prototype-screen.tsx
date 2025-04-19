@@ -100,7 +100,7 @@ export const PrototypeScreen = memo(({ id }: NodeProps & Omit<PrototypeScreenTyp
   const { value: imageSrc, onChange: onImageSrcChange } = useScreenController(id, 'data.imageSrc');
   const { value: areas = [], onChange: setAreas } = useScreenController(id, 'data.areas');
   const index = useScreenIndex(id);
-  const { areaGhost, isAreaGhostValid, imageRef } = useDrawArea(id);
+  const { areaGhost, imageRef } = useDrawArea(id);
   const [selectedArea, setSelectedArea] = useState<string | null>(null);
   const currentSelectedArea = useRef(selectedArea);
   currentSelectedArea.current = selectedArea;
@@ -174,7 +174,6 @@ export const PrototypeScreen = memo(({ id }: NodeProps & Omit<PrototypeScreenTyp
               path={`data.areas.${index}`}
               imageRef={imageRef}
               onSelect={setSelectedArea}
-              onRemove={handleRemoveArea}
             />
           ))}
         </div>

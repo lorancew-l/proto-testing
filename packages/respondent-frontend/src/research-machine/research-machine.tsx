@@ -9,6 +9,7 @@ import type {
   AnswerStackRecord,
   PendingEvent,
   PendingEventStatusUpdate,
+  PrototypeQuestionAnswerState,
   ResearchMachineContext,
   ResearchMachineEvents,
 } from './types';
@@ -42,7 +43,6 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
               } satisfies PendingEventStatusUpdate);
             } catch (error) {
               await new Promise((resolve) => setTimeout(resolve, 500));
-              console.log('REJECT!');
               sendBack({
                 type: 'pendingEventStatusUpdate',
                 event: { ...pendingEvent, status: 'rejected' },
@@ -77,7 +77,6 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
         const { answer } = event;
         const answerStackRecord = getAnswerStackRecord(state.answerStack, questionId);
 
-        // @ts-ignore
         const nextAnswerStackRecord: AnswerStackRecord = (() => {
           switch (answer.type) {
             case 'single':
@@ -87,19 +86,29 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
                 answers: [answer.answerId],
               };
             case 'prototype':
-              const { click } = answer;
+              const { click, screenId, ssid, screenTime } = answer;
               const { area } = click;
+
+              const prevRecord = answerStackRecord as Extract<AnswerStackRecord, { type: 'prototype' }>;
+
+              const currentScreenId = prevRecord.screenId;
               const nextScreen =
                 area && question.type === 'prototype' ? question.screens.find((screen) => screen.id === area.goToScreenId) : null;
 
+              const completed = !!nextScreen?.data.areas.every((area) => !area.goToScreenId);
+
               return {
-                ...answerStackRecord,
+                ...prevRecord,
                 type: answer.type,
+                completed,
+                givenUp: false,
                 ...(nextScreen && { screenId: nextScreen.id }),
+                ...(completed && { endTs: Date.now() }),
+                ...(nextScreen && currentScreenId && { screenTime: { ...prevRecord.screenTime, [currentScreenId]: screenTime } }),
                 answers: [
-                  ...answerStackRecord.answers,
-                  { x: click.x, y: click.y, areaId: area?.id ?? null },
-                ] as AnswerStackRecord['answers'],
+                  ...(answerStackRecord.answers as PrototypeQuestionAnswerState['answers']),
+                  { x: click.x, y: click.y, screenId, ssid, areaId: area?.id ?? null, ts: Date.now() },
+                ],
               };
             default:
               // @ts-ignore
@@ -195,7 +204,6 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
       isAllEventsSend: ({ context }) => !context.state.pendingEvents.length,
       hasScheduledEvents: ({ context }) => context.state.pendingEvents.some((event) => event.status === 'scheduled'),
       isShouldSetErrorSendingEvents: ({ context }) => {
-        console.log('test', context.state.pendingEvents);
         return (
           !context.state.pendingEvents.some((event) => event.status === 'pending' || event.status === 'scheduled') &&
           context.state.pendingEvents.some((event) => event.status === 'rejected')
@@ -312,7 +320,6 @@ const useResearchMachine = (research: Research & { id: string }) => {
     });
   }, [research]);
   const [state, send, actor] = useMachine(machine);
-  console.log(state.context.state);
   return { state, send, actor };
 };
 

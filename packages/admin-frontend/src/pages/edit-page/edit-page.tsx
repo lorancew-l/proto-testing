@@ -1,9 +1,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'react-router';
 
-import { throttle } from 'lodash';
-
-import { useGetResearchRequest, useUpdateResearchRequest } from '../../api';
+import { useGetResearchRequest } from '../../api';
 
 import { Header } from './header';
 import { PreviewPage } from './preview-page';
@@ -31,27 +29,13 @@ export const EditPage = () => {
       setResearch({ ...data, id });
     },
   });
-  const { updateResearch } = useUpdateResearchRequest();
 
   useEffect(() => {
     const id = params.id;
     if (id) {
       void getResearch(id);
     }
-  }, []);
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    const throttledUpdate = throttle(updateResearch, 5000);
-
-    return useEditPageStore.subscribe(
-      (state) => state.research,
-      (state) => {
-        throttledUpdate(state);
-      },
-    );
-  }, [isLoading]);
+  }, [params.id]);
 
   return (
     <main>

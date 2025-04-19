@@ -36,10 +36,25 @@ export class EventSender implements IEventSender {
     });
   }
 
+  private buildAnswers(event: Extract<ResearchEvent, { type: 'research-answer' }>) {
+    if (event.answer.type === 'prototype') {
+      return JSON.stringify({
+        clicks: event.answer.answers,
+        screenTime: event.answer.screenTime,
+        startTs: event.answer.startTs,
+        endTs: event.answer.endTs,
+        completed: event.answer.completed,
+        givenUp: event.answer.givenUp,
+      });
+    }
+
+    return JSON.stringify(event.answer.answers);
+  }
+
   public sendEvent(event: ResearchEvent) {
     return this.postEvent({
       type: event.type,
-      answers: 'answer' in event ? JSON.stringify(event.answer.answers) : null,
+      answers: event.type === 'research-answer' ? this.buildAnswers(event) : null,
       questionId: 'questionId' in event ? event.questionId : null,
       questionType: 'answer' in event ? event.answer.type : null,
     });

@@ -55,6 +55,11 @@ export const createAnswerStackRecord = (question: Question): AnswerStackRecord =
       questionId: question.id,
       screenId: firstScreen?.id,
       type: question.type,
+      givenUp: false,
+      completed: false,
+      startTs: Date.now(),
+      screenTime: {},
+      endTs: null,
       answers: [],
     };
   }

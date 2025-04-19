@@ -25,6 +25,7 @@
     "@tiptap/starter-kit": "2.11.5",
     "@xyflow/react": "12.4.4",
     "date-fns": "4.1.0",
+    "heatmap.js": "2.0.5",
     "immer": "10.1.1",
     "jwt-decode": "^4.0.0",
     "lodash": "4.17.21",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/heatmap.js": "^2.0.41",
     "@types/lodash": "^4.17.16",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

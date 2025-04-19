@@ -7,7 +7,13 @@ export type ResearchMachineEvents =
       type: 'selectAnswer';
       answer:
         | { type: SingleQuestion['type']; answerId: string }
-        | { type: PrototypeQuestion['type']; click: { x: number; y: number; area: PrototypeArea | null } };
+        | {
+            type: PrototypeQuestion['type'];
+            screenId: string;
+            ssid: string;
+            screenTime: number;
+            click: { x: number; y: number; area: PrototypeArea | null };
+          };
     }
   | { type: 'answer' }
   | { type: 'retryEventSending' }
@@ -29,12 +35,17 @@ export type ResearchEvent =
       type: 'research-finish';
     };
 
-type SingleQuestionAnswerState = { type: SingleQuestion['type']; answers: string[] };
-type MultipleQuestionAnswerState = { type: MultipleQuestion['type']; answers: string[] };
-type RatingQuestionAnswerState = { type: RatingQuestion['type']; answers: string[] };
-type PrototypeQuestionAnswerState = {
+export type SingleQuestionAnswerState = { type: SingleQuestion['type']; answers: string[] };
+export type MultipleQuestionAnswerState = { type: MultipleQuestion['type']; answers: string[] };
+export type RatingQuestionAnswerState = { type: RatingQuestion['type']; answers: string[] };
+export type PrototypeQuestionAnswerState = {
   type: PrototypeQuestion['type'];
-  answers: { x: number; y: number; areaId: string | null }[];
+  startTs: number;
+  endTs: number | null;
+  completed: boolean;
+  givenUp: boolean;
+  screenTime: Record<string, number>;
+  answers: { x: number; y: number; screenId: string; ssid: string; ts: number; areaId: string | null }[];
 };
 
 type QuestionAnswerState =
