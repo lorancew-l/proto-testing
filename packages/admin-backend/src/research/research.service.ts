@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 
 import { Prisma } from '.prisma/client';
 import { generateResearch } from 'shared';
+import { ResearchStatisticsService } from 'src/research-statistics/research-statistics.service';
 
 import { DatabaseService } from '../database/database.service';
 
@@ -11,8 +12,9 @@ import { UpdateResearchDTO } from './research.dto';
 @Injectable()
 export class ResearchService {
   constructor(
-    private databaseService: DatabaseService,
-    private publicationService: PublicationService,
+    private readonly databaseService: DatabaseService,
+    private readonly publicationService: PublicationService,
+    private readonly researchStatisticsService: ResearchStatisticsService,
   ) {}
 
   async createResearch(userId: string) {
@@ -41,11 +43,22 @@ export class ResearchService {
   }
 
   async getResearchList(userId: string) {
-    return this.databaseService.research.findMany({
+    const researchList = await this.databaseService.research.findMany({
       select: { id: true, name: true, createdAt: true, updatedAt: true, publishedAt: true },
-      orderBy: [{ updatedAt: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ updatedAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
       where: { ownedBy: userId },
     });
+
+    return Promise.all(
+      researchList.map(async (research) => {
+        const load = await this.researchStatisticsService.getResearchLoadCount(research.id);
+
+        return {
+          ...research,
+          load,
+        };
+      }),
+    );
   }
 
   async updateResearch(id: string, updateResearchDTO: UpdateResearchDTO) {

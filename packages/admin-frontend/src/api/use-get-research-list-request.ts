@@ -1,10 +1,19 @@
 import { useCallback } from 'react';
 
-import { Research } from 'shared';
-
 import { UseFetch, useFetch } from './use-fetch';
 
-export const useGetResearchListRequest = (props?: UseFetch<(Research & { id: string })[]>) => {
+export const useGetResearchListRequest = (
+  props?: UseFetch<
+    {
+      id: string;
+      name: string;
+      load: number;
+      createdAt: string;
+      publishedAt: string | null;
+      updatedAt: string | null;
+    }[]
+  >,
+) => {
   const { fetchData, ...rest } = useFetch({ ...props, withAuth: true });
 
   const getResearchList = useCallback(() => {

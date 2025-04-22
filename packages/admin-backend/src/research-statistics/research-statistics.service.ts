@@ -46,6 +46,25 @@ type QuestionsAnswersStats = Record<string, QuestionStats>;
 export class ResearchStatisticsService {
   constructor(private readonly statisticsProviderService: StatisticsProviderService) {}
 
+  public async getResearchLoadCount(researchId: string) {
+    const result = await this.statisticsProviderService.query({
+      query: `
+        SELECT
+          COUNT(type) AS count
+        FROM
+          research_events
+        WHERE
+          research_id = {research_id: String}
+        AND
+          type = 'research-load'`,
+      query_params: { research_id: researchId },
+      format: 'JSONEachRow',
+    });
+
+    const [{ count }] = await result.json<{ count: string }>();
+    return Number(count);
+  }
+
   private async getGeneralStats(researchId: string) {
     const result = await this.statisticsProviderService.query({
       query: `

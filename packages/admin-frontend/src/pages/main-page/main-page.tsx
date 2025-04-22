@@ -6,6 +6,7 @@ import { range } from 'lodash';
 import AddIcon from '@mui/icons-material/Add';
 import { CircularProgress, Skeleton, Typography } from '@mui/material';
 
+import { format } from 'date-fns';
 import { makeStyles } from 'tss-react/mui';
 
 import { useCreateResearchRequest, useGetResearchListRequest } from '../../api';
@@ -31,6 +32,8 @@ const useStyles = makeStyles()((theme) => ({
     display: 'flex',
     alignItems: 'center',
     marginBottom: theme.spacing(2),
+    padding: theme.spacing(1.5),
+    gap: theme.spacing(2),
   },
   column: {
     color: theme.palette.action.active,
@@ -56,6 +59,16 @@ const useStyles = makeStyles()((theme) => ({
     backgroundColor: theme.palette.common.white,
     border: '1px solid #d5d6da',
     padding: theme.spacing(1.5),
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(2),
+  },
+  researchColumn: {
+    flexBasis: 'calc((100% - 40%) / 3)',
+    '&:first-child': {
+      flexBasis: '40%',
+    },
   },
   createResearch: {
     all: 'unset',
@@ -83,10 +96,13 @@ const useStyles = makeStyles()((theme) => ({
     transform: 'translate(-50%,-50%) !important',
     color: theme.palette.common.black,
   },
+  center: {
+    textAlign: 'center',
+  },
 }));
 
 export const MainPage = () => {
-  const { classes } = useStyles();
+  const { classes, cx } = useStyles();
 
   const navigate = useNavigate();
   const { isLoading: isListLoading, data: researchList, getResearchList } = useGetResearchListRequest();
@@ -117,13 +133,15 @@ export const MainPage = () => {
         </div>
 
         <div className={classes.columns}>
-          <Typography className={classes.column} variant="body1">
+          <Typography className={cx(classes.column, classes.center)} variant="body1">
             Прохождений
           </Typography>
-          <Typography className={classes.column} variant="body1">
+
+          <Typography className={cx(classes.column, classes.center)} variant="body1">
             Обновлено
           </Typography>
-          <Typography className={classes.column} variant="body1">
+
+          <Typography className={cx(classes.column, classes.center)} variant="body1">
             Опубликовано
           </Typography>
         </div>
@@ -131,10 +149,24 @@ export const MainPage = () => {
 
       <ol className={classes.researchList}>
         {isListLoading
-          ? range(8).map((index) => <Skeleton key={index} height={44} />)
+          ? range(8).map((index) => <Skeleton key={index} height={44} sx={{ transform: 'none' }} />)
           : researchList?.map((research) => (
               <li key={research.id} className={classes.research} onClick={() => navigate(`/researches/${research.id}`)}>
-                {research.id}
+                <Typography className={classes.researchColumn} variant="body1">
+                  {research.name || `Исследование от ${format(research.createdAt, 'dd.MM.yyyy')}`}
+                </Typography>
+
+                <Typography className={cx(classes.researchColumn, classes.center)} variant="body1">
+                  {research.publishedAt ? research.load : '—'}
+                </Typography>
+
+                <Typography className={cx(classes.researchColumn, classes.center)} variant="body1">
+                  {format(research.updatedAt ?? research.createdAt, 'dd.MM.yyyy')}
+                </Typography>
+
+                <Typography className={cx(classes.researchColumn, classes.center)} variant="body1">
+                  {research.publishedAt ? format(research.publishedAt, 'dd.MM.yyyy') : '—'}
+                </Typography>
               </li>
             ))}
       </ol>

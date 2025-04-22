@@ -6,6 +6,7 @@ import { StatisticsProviderService } from './statistics-provider.service';
 
 @Module({
   providers: [ResearchStatisticsService, StatisticsProviderService],
+  exports: [ResearchStatisticsService],
   controllers: [ResearchStatisticsController],
 })
 export class ResearchStatisticsModule {}
