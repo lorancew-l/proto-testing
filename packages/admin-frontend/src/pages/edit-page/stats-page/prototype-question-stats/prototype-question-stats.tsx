@@ -149,8 +149,6 @@ export const PrototypeQuestionStats = ({
     return getSessionScreenPath(session).map(({ ssid, screenId }) => ({ ...screenMap.get(screenId)!, ssid }));
   }, [question.screens, stats, selectedState?.sessionId]);
 
-  console.log({ selectedState, screens });
-
   return (
     <>
       <QuestionStatsCard question={question} index={index}>

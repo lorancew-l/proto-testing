@@ -19,27 +19,27 @@ CREATE TABLE "Token" (
 );
 
 -- CreateTable
-CREATE TABLE "ResearchGroup" (
-    "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "ownedBy" TEXT NOT NULL,
-
-    CONSTRAINT "ResearchGroup_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "Research" (
     "id" TEXT NOT NULL,
-    "groupId" TEXT,
     "name" TEXT NOT NULL,
     "data" JSONB NOT NULL,
-    "publishedData" JSONB NOT NULL,
+    "publishedUrl" TEXT,
+    "publishedRevision" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3),
     "publishedAt" TIMESTAMP(3),
     "ownedBy" TEXT NOT NULL,
 
     CONSTRAINT "Research_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PublishedResearch" (
+    "id" TEXT NOT NULL,
+    "revision" INTEGER NOT NULL,
+    "data" JSONB NOT NULL,
+
+    CONSTRAINT "PublishedResearch_pkey" PRIMARY KEY ("id","revision")
 );
 
 -- CreateIndex
@@ -55,10 +55,7 @@ CREATE UNIQUE INDEX "Token_userId_key" ON "Token"("userId");
 ALTER TABLE "Token" ADD CONSTRAINT "Token_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ResearchGroup" ADD CONSTRAINT "ResearchGroup_ownedBy_fkey" FOREIGN KEY ("ownedBy") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Research" ADD CONSTRAINT "Research_ownedBy_fkey" FOREIGN KEY ("ownedBy") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Research" ADD CONSTRAINT "Research_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "ResearchGroup"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "PublishedResearch" ADD CONSTRAINT "PublishedResearch_id_fkey" FOREIGN KEY ("id") REFERENCES "Research"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

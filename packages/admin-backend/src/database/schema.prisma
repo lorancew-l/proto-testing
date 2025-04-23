@@ -22,8 +22,6 @@ model User {
   Token Token?
 
   Research Research[]
-
-  ResearchGroup ResearchGroup[]
 }
 
 model Token {
@@ -36,28 +34,16 @@ model Token {
   user User @relation(fields: [userId], references: [id])
 }
 
-model ResearchGroup {
-  id String @id @default(uuid())
-
-  name String
-
-  ownedBy String
-
-  owner User @relation(fields: [ownedBy], references: [id])
-
-  Research Research[]
-}
-
 model Research {
   id String @id @default(uuid())
-
-  groupId String?
 
   name String
 
   data Json
 
-  publishedData Json
+  publishedUrl String?
+
+  publishedRevision Int?
 
   createdAt DateTime @default(now())
 
@@ -67,7 +53,18 @@ model Research {
 
   ownedBy String
 
-  owner User @relation(fields: [ownedBy], references: [id])
+  owner             User                @relation(fields: [ownedBy], references: [id])
+  PublishedResearch PublishedResearch[]
+}
 
-  group ResearchGroup? @relation(fields: [groupId], references: [id])
+model PublishedResearch {
+  id String
+
+  revision Int
+
+  data Json
+
+  research Research @relation(fields: [id], references: [id])
+
+  @@id(name: "publishedId", [id, revision])
 }

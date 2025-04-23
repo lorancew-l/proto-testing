@@ -9,7 +9,11 @@ pnpm install --frozen-lockfile
 ## Создание .env
 
 ```sh
-cp ./packages/admin-backend/.env.example ./packages/admin-backend/.env && cp ./packages/admin-frontend/.env.example ./packages/admin-frontend/.env && cp ./packages/respondent-frontend/.env.example ./packages/respondent-frontend/.env
+cp ./packages/admin-backend/.env.example ./packages/admin-backend/.env &&
+cp ./packages/admin-frontend/.env.example ./packages/admin-frontend/.env &&
+cp ./packages/respondent-frontend/.env.example ./packages/respondent-frontend/.env &&
+cp ./packages/respondent-backend/.env.example ./packages/respondent-backend/.env &&
+cp ./packages/event-collector/.env.example ./packages/event-collector/.env
 ```
 
 ## Запуск контейнеров
@@ -51,6 +55,8 @@ docker run --network="host" --env-file ./packages/respondent-frontend/.env respo
 pnpm start:dev:admin-backend
 pnpm start:dev:admin-frontend
 pnpm start:dev:respondent-frontend
+pnpm start:dev:respondent-backend
+pnpm start:dev:event-collector
 ```
 
 ## Запуск проекта в prod-режиме

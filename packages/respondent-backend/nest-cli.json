@@ -3,10 +3,11 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
+    "watchAssets": true,
     "deleteOutDir": true,
     "assets": [
       {
-        "include": "research/**/*.mustache",
+        "include": "**/*.(mustache|html)",
         "outDir": "dist"
       }
     ]

@@ -227,7 +227,6 @@ export const PrototypeScreenStats = ({
 
   const moveToScreen = (index: number) => {
     const nextScreen = screens[index];
-    console.log({ nextScreen });
     if (nextScreen) onScreenSelect({ ssid: nextScreen.ssid, screenId: nextScreen.id });
   };
 

@@ -8,6 +8,7 @@ export const researchEventSchema = z.object({
   questionType: z.enum(['single', 'multiple', 'rating', 'prototype']).nullable(),
   answers: z.string().nullable(),
   appName: z.string(),
+  revision: z.number(),
 });
 
 export type ResearchEvent = z.infer<typeof researchEventSchema>;

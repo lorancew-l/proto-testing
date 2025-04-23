@@ -89,12 +89,12 @@ const useStyles = makeStyles()((theme) => ({
     },
   },
   loader: {
-    display: 'block',
     position: 'absolute',
-    left: '50%',
     top: '50%',
-    transform: 'translate(-50%,-50%) !important',
-    color: theme.palette.common.black,
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    height: 16,
+    width: 16,
   },
   center: {
     textAlign: 'center',
@@ -123,7 +123,11 @@ export const MainPage = () => {
           <Typography variant="h6">Исследования</Typography>
 
           <button className={classes.createResearch} disabled={isCreateLoading} onClick={createResearch}>
-            {isCreateLoading && <CircularProgress className={classes.loader} size={16} />}
+            {isCreateLoading && (
+              <span className={classes.loader}>
+                <CircularProgress sx={{ color: 'black' }} size={16} />
+              </span>
+            )}
 
             <span {...(isCreateLoading && { style: { visibility: 'hidden' } })}>
               <AddIcon />

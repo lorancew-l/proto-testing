@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import type { Question } from 'shared';
+import { DatabaseService } from 'src/database/database.service';
 
 import { StatisticsProviderService } from './statistics-provider.service';
 
@@ -44,9 +45,23 @@ type QuestionsAnswersStats = Record<string, QuestionStats>;
 
 @Injectable()
 export class ResearchStatisticsService {
-  constructor(private readonly statisticsProviderService: StatisticsProviderService) {}
+  constructor(
+    private readonly statisticsProviderService: StatisticsProviderService,
+    private readonly databaseService: DatabaseService,
+  ) {}
 
-  public async getResearchLoadCount(researchId: string) {
+  private async getLatestRevision(researchId: string) {
+    const foundResearch = await this.databaseService.publishedResearch.findFirst({
+      orderBy: { revision: 'desc' },
+      where: { id: researchId },
+      select: { revision: true },
+    });
+    return foundResearch ? foundResearch.revision : null;
+  }
+
+  public async getResearchLoadCount(researchId: string, revision?: number) {
+    const resolvedRevision = revision ?? (await this.getLatestRevision(researchId)) ?? 1;
+
     const result = await this.statisticsProviderService.query({
       query: `
         SELECT
@@ -56,8 +71,10 @@ export class ResearchStatisticsService {
         WHERE
           research_id = {research_id: String}
         AND
+          revision = {revision: UInt16}
+        AND
           type = 'research-load'`,
-      query_params: { research_id: researchId },
+      query_params: { research_id: researchId, revision: resolvedRevision },
       format: 'JSONEachRow',
     });
 
@@ -65,7 +82,7 @@ export class ResearchStatisticsService {
     return Number(count);
   }
 
-  private async getGeneralStats(researchId: string) {
+  private async getGeneralStats(researchId: string, revision: number) {
     const result = await this.statisticsProviderService.query({
       query: `
         SELECT
@@ -75,9 +92,11 @@ export class ResearchStatisticsService {
           research_events
         WHERE
           research_id = {research_id: String}
+        AND
+          revision = {revision: UInt16}
         GROUP BY
           type`,
-      query_params: { research_id: researchId },
+      query_params: { research_id: researchId, revision },
       format: 'JSONEachRow',
     });
 
@@ -88,7 +107,7 @@ export class ResearchStatisticsService {
     }, {});
   }
 
-  private async getAverageSessionDuration(researchId: string) {
+  private async getAverageSessionDuration(researchId: string, revision: number) {
     const result = await this.statisticsProviderService.query({
       query: `
         SELECT
@@ -100,11 +119,13 @@ export class ResearchStatisticsService {
             research_events
           WHERE
             research_id = {research_id: String}
+          AND
+            revision = {revision: UInt16}
           GROUP BY
             research_id, session_id
         )
         `,
-      query_params: { research_id: researchId },
+      query_params: { research_id: researchId, revision },
       format: 'JSONEachRow',
     });
 
@@ -112,7 +133,7 @@ export class ResearchStatisticsService {
     return avg_session_duration * 1000;
   }
 
-  private async getQuestionAnswerStats(researchId: string): Promise<QuestionsAnswersStats> {
+  private async getQuestionAnswerStats(researchId: string, revision: number): Promise<QuestionsAnswersStats> {
     const result = await this.statisticsProviderService.query({
       query: `
         SELECT
@@ -123,11 +144,15 @@ export class ResearchStatisticsService {
         FROM
           research_events
         WHERE
-          research_id = {research_id: String} AND type='research-answer'
+          research_id = {research_id: String}
+        AND
+          type='research-answer'
+        AND
+          revision = {revision: UInt16}
         ORDER BY
           ts ASC
         `,
-      query_params: { research_id: researchId },
+      query_params: { research_id: researchId, revision },
       format: 'JSONEachRow',
     });
 
@@ -228,17 +253,20 @@ export class ResearchStatisticsService {
     return questionAnswerStats;
   }
 
-  public async getStatistics(researchId: string) {
+  public async getStatistics(researchId: string, revision?: number) {
+    const resolvedRevision = revision ?? (await this.getLatestRevision(researchId)) ?? 1;
+
     const [generalStats, avgSessionTime, questionAnswersStats] = await Promise.all([
-      this.getGeneralStats(researchId),
-      this.getAverageSessionDuration(researchId),
-      this.getQuestionAnswerStats(researchId),
+      this.getGeneralStats(researchId, resolvedRevision),
+      this.getAverageSessionDuration(researchId, resolvedRevision),
+      this.getQuestionAnswerStats(researchId, resolvedRevision),
     ]);
 
     return {
       ...generalStats,
       answers: questionAnswersStats,
       avgSessionTime,
+      revision: resolvedRevision,
     };
   }
 }

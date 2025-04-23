@@ -17,13 +17,23 @@ export class PublicationService {
     this.bundleUrl = bundleUrl;
   }
 
-  async publishResearch(id: string, data: unknown) {
+  async publishResearch({
+    id,
+    data,
+    revision,
+    pauseResearch,
+  }: {
+    id: string;
+    data: object;
+    revision: Number;
+    pauseResearch?: boolean;
+  }): Promise<{ url: string }> {
     const response = await fetch(new URL(`/api/publication/${id}`, this.baseUrl), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ data, cdnUrl: this.bundleUrl }),
+      body: JSON.stringify({ data: { ...data, revision }, cdnUrl: this.bundleUrl, paused: pauseResearch }),
     });
 
     if (!response.ok) {

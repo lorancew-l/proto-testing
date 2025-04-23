@@ -20,6 +20,7 @@ export class EventService {
           question_id: event.questionId ?? '',
           question_type: event.questionType ?? '',
           answers: event.answers ?? '',
+          revision: event.revision,
         },
       ],
       clickhouse_settings: {

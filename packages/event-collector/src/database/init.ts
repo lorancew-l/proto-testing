@@ -51,7 +51,8 @@ void (async () => {
         type String,
         question_id String,
         question_type String,
-        answers String
+        answers String,
+        revision UInt16
       ) ENGINE = MergeTree()
       ORDER BY session_id;
     `,

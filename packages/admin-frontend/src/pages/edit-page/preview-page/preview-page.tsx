@@ -38,7 +38,8 @@ export const PreviewPage = () => {
         <body>
           <div id="research-root"></div>
           <script>
-            window.research=${JSON.stringify(getResearch())}
+            window.DEV_MODE = true;
+            window.research=${JSON.stringify({ ...getResearch(), revision: 1 })}
           </script>
           <script src="${import.meta.env.VITE_RESPONDENT_ENTRYPOINT_URL}"></script>
       </html>

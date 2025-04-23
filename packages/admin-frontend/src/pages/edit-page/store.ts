@@ -12,10 +12,11 @@ import { immer } from 'zustand/middleware/immer';
 
 export type Section = 'research' | 'preview' | 'publish' | 'stats';
 
+export type ResearchMetadata = { id: string; publishedUrl: string | null; publishedRevision: number | null };
 interface EditPageStoreState {
   section: Section;
-  research: Research & { id: string };
-  publishedResearch: (Research & { publishedAt: string; publishedBy: string }) | null;
+  research: Research;
+  researchMetadata: ResearchMetadata;
   form: {
     scheduledFocusPath: string | null;
     registeredFields: Partial<
@@ -27,8 +28,9 @@ interface EditPageStoreState {
 export type Fields = Pick<EditPageStore, 'research'>;
 
 interface EditPageStoreActions {
-  setResearch: (research: Research & { id: string }) => void;
-  getResearch: () => Research & { id: string };
+  setResearch: (research: Research, metadata?: ResearchMetadata) => void;
+  getResearch: () => Research;
+  getResearchMetadata: () => ResearchMetadata;
   setSection: (section: Section) => void;
   removeQuestion: (id: string) => void;
   duplicateQuestion: (id: string) => void;
@@ -58,10 +60,13 @@ export interface EditPageStore extends EditPageStoreState {
 
 const getStoreDefaultValue = (): Omit<EditPageStore, 'actions'> => ({
   research: {
-    id: '',
     questions: [],
   },
-  publishedResearch: null,
+  researchMetadata: {
+    id: '',
+    publishedRevision: null,
+    publishedUrl: null,
+  },
   section: 'research',
   form: {
     registeredFields: {},
@@ -75,8 +80,9 @@ export const useEditPageStore = create<EditPageStore>()(
       subscribeWithSelector((set, get) => ({
         ...getStoreDefaultValue(),
         actions: {
-          setResearch: (research) => set({ research }),
+          setResearch: (research, researchMetadata) => set({ research, ...(researchMetadata && { researchMetadata }) }),
           getResearch: () => get().research,
+          getResearchMetadata: () => get().researchMetadata,
           form: {
             setFieldValue: (field, value) =>
               set((state) => {

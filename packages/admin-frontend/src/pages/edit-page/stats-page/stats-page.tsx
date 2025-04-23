@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router';
 
 import { range } from 'lodash';
@@ -13,8 +13,7 @@ import { Skeleton, Typography } from '@mui/material';
 import { generateQuestion } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
-import { useGetResearchStatsRequest } from '../../../api';
-import { useEditPageStore } from '../store';
+import { useGetPublishedResearchRequest, useGetResearchStatsRequest } from '../../../api';
 
 import { QuestionStats } from './question-stats';
 import { formatTimeMinAndSec } from './utils';
@@ -72,11 +71,13 @@ const skeletonQuestions = range(5).map(() => generateQuestion('single'));
 
 export const StatsPage = ({ isLoading }: { isLoading: boolean }) => {
   const { classes } = useStyles();
-  const questions = useEditPageStore((state) => state.research.questions);
 
+  const { isLoading: dataLoading, data: publishedResearch, getPublishedResearch } = useGetPublishedResearchRequest();
   const { isLoading: statsLoading, data: stats, getResearchStats } = useGetResearchStatsRequest();
 
-  const loading = isLoading || statsLoading;
+  const questions = useMemo(() => publishedResearch?.data.questions ?? [], [publishedResearch]);
+
+  const loading = isLoading || statsLoading || dataLoading;
 
   const params = useParams<{ id?: string }>();
 
@@ -84,8 +85,9 @@ export const StatsPage = ({ isLoading }: { isLoading: boolean }) => {
     const id = params.id;
     if (id) {
       getResearchStats(id);
+      getPublishedResearch(id);
     }
-  }, []);
+  }, [params.id]);
 
   return (
     <section className={classes.content}>

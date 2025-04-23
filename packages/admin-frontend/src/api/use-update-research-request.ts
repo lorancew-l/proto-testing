@@ -8,13 +8,13 @@ export const useUpdateResearchRequest = (props?: UseFetch<{ id: string; data: Re
   const { fetchData, ...rest } = useFetch({ ...props, withAuth: true });
 
   const updateResearch = useCallback(
-    (research: Research & { id: string }) => {
-      return fetchData(`/api/research/${research.id}`, {
+    (id: string, researchData: Research) => {
+      return fetchData(`/api/research/${id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ data: research }),
+        body: JSON.stringify({ data: researchData }),
       });
     },
     [fetchData],

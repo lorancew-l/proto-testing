@@ -5,6 +5,7 @@ export { useFetch } from './use-fetch';
 export { useRefreshTokens } from './use-refresh-tokens';
 
 export { useCreateResearchRequest } from './use-create-research-request';
+export { useGetPublishedResearchRequest } from './use-get-published-research-request';
 export { useGetResearchListRequest } from './use-get-research-list-request';
 export { useGetResearchRequest } from './use-get-research-request';
 export { useGetResearchStatsRequest } from './use-get-research-stats-request';

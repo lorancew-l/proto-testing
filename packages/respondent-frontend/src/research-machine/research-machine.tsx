@@ -306,13 +306,14 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
     },
   });
 
-const useResearchMachine = (research: Research & { id: string }) => {
+const useResearchMachine = (research: Research & { id: string; revision: number }) => {
   const machine = useMemo(() => {
     const context = createInitialContext(research);
     const eventSender = new EventSender({
       sessionId: context.state.sessionId,
       researchId: research.id,
-      appName: import.meta.env.PROD ? 'respondent-frontend' : 'test',
+      appName: import.meta.env.DEV || window.DEV_MODE ? 'test' : 'respondent-frontend',
+      revision: research.revision,
     });
     return createResearchMachine({
       context: createInitialContext(research),
@@ -335,7 +336,7 @@ export const ResearchMachineContextProvider = ({
   research,
   children,
 }: {
-  research: Research & { id: string };
+  research: Research & { id: string; revision: number };
   children: React.ReactNode;
 }) => {
   const value = useResearchMachine(research);

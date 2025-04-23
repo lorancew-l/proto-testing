@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { IsNotEmpty, IsObject, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class PublishResearchDTO {
   @ApiProperty({ required: true, description: 'Research data' })
@@ -12,4 +12,9 @@ export class PublishResearchDTO {
   @IsNotEmpty()
   @IsString()
   cdnUrl: string;
+
+  @ApiProperty({ required: true, description: 'Pause research' })
+  @IsOptional()
+  @IsBoolean()
+  paused?: boolean;
 }

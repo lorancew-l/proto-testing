@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import { AccessGuard } from '../auth/guards';
@@ -13,7 +13,7 @@ export class ResearchStatisticsController {
   @Get(':id')
   @ApiBearerAuth('Authorization')
   @UseGuards(AccessGuard)
-  getResearchStats(@Param('id') researchId: string) {
-    return this.researchStatisticsService.getStatistics(researchId);
+  getResearchStats(@Param('id') researchId: string, @Query('revision') revision: string | undefined) {
+    return this.researchStatisticsService.getStatistics(researchId, revision ? Number(revision) : undefined);
   }
 }

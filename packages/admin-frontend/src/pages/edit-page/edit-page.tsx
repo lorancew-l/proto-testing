@@ -25,8 +25,8 @@ export const EditPage = () => {
 
   const params = useParams<{ id?: string }>();
   const { isLoading, getResearch } = useGetResearchRequest({
-    onSuccess: ({ id, data }) => {
-      setResearch({ ...data, id });
+    onSuccess: ({ id, data, publishedUrl, publishedRevision }) => {
+      setResearch(data, { id, publishedUrl, publishedRevision });
     },
   });
 

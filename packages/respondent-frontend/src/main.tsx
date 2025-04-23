@@ -30,6 +30,7 @@ import { ResearchMachineContextProvider } from './research-machine';
 
 declare global {
   interface Window {
-    research: (Research & { id: string }) | undefined;
+    research: (Research & { id: string; revision: number }) | undefined;
+    DEV_MODE?: boolean;
   }
 }

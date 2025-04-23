@@ -9,6 +9,7 @@ export interface CommonData {
   sessionId: string;
   researchId: string;
   appName: string;
+  revision: number;
 }
 
 interface EventSenderEvent extends CommonData {
@@ -16,6 +17,7 @@ interface EventSenderEvent extends CommonData {
   questionId: string | null;
   questionType: Question['type'] | null;
   answers: string | null;
+  revision: number;
 }
 
 export class EventSender implements IEventSender {

@@ -1,14 +1,14 @@
 import { useCallback } from 'react';
 
-import { SavedResearch } from './types';
+import { PublishedResearch } from './types';
 import { UseFetch, useFetch } from './use-fetch';
 
-export const useGetResearchRequest = (props?: UseFetch<SavedResearch>) => {
+export const useGetPublishedResearchRequest = (props?: UseFetch<PublishedResearch>) => {
   const { fetchData, ...rest } = useFetch({ ...props, withAuth: true });
 
-  const getResearch = useCallback(
+  const getPublishedResearch = useCallback(
     (id: string) => {
-      return fetchData(`/api/research/${id}`, {
+      return fetchData(`/api/research/published/${id}`, {
         method: 'GET',
       });
     },
@@ -16,7 +16,7 @@ export const useGetResearchRequest = (props?: UseFetch<SavedResearch>) => {
   );
 
   return {
-    getResearch,
+    getPublishedResearch,
     ...rest,
   };
 };

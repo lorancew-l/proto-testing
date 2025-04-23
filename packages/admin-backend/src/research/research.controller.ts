@@ -1,5 +1,7 @@
-import { Body, Controller, ForbiddenException, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+
+import { omit } from 'lodash';
 
 import { GetUserId } from 'src/auth/decorators';
 
@@ -40,6 +42,23 @@ export class ResearchController {
     return research;
   }
 
+  @Get('published/:id')
+  @ApiBearerAuth('Authorization')
+  @UseGuards(AccessGuard)
+  async getPublishedResearch(
+    @Param('id') id: string,
+    @Query('revision') revision: string | undefined,
+    @GetUserId() userId: string,
+  ) {
+    const publishedResearch = await this.researchService.getPublishedResearch(id, revision ? Number(revision) : undefined);
+
+    if (publishedResearch.research.ownedBy !== userId) {
+      throw new ForbiddenException();
+    }
+
+    return omit(publishedResearch, 'research');
+  }
+
   @Post(':id')
   @ApiBearerAuth('Authorization')
   @UseGuards(AccessGuard)
@@ -58,7 +77,14 @@ export class ResearchController {
   @ApiBearerAuth('Authorization')
   @UseGuards(AccessGuard)
   @HttpCode(200)
-  async publishResearch(@Param('id') id: string) {
-    return this.researchService.publishResearch(id);
+  async publishResearch(
+    @Param('id') id: string,
+    @Query('increaseRevision') increaseRevision: string | undefined,
+    @Query('pauseResearch') pauseResearch: string | undefined,
+  ) {
+    return this.researchService.publishResearch(id, {
+      increaseRevision: increaseRevision === 'true',
+      pauseResearch: pauseResearch === 'true',
+    });
   }
 }

@@ -40,9 +40,9 @@ export const ResearchPage = ({ isLoading }: { isLoading: boolean }) => {
     const throttledUpdate = throttle(updateResearch, 5000);
 
     return useEditPageStore.subscribe(
-      (state) => state.research,
+      (state) => ({ data: state.research, id: state.researchMetadata.id }),
       (state) => {
-        throttledUpdate(state);
+        throttledUpdate(state.id, state.data);
       },
     );
   }, [isLoading]);
