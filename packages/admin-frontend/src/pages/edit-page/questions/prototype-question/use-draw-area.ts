@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { nanoid } from 'nanoid';
 
-import { useScreenSetValue, useScreenWatch } from './prototype-screen-settings-context';
+import { useScreenSetValue, useScreenWatch } from './prototype-screen-context';
 import { minimumAreaSideSizePx, rectIntersection } from './utils';
 
 export function useDrawArea(id: string) {
@@ -62,6 +62,7 @@ export function useDrawArea(id: string) {
     if (!image) return;
 
     const handleMouseDown = (event: MouseEvent) => {
+      if (event.button !== 0) return;
       const startX = event.offsetX;
       const startY = event.offsetY;
 
@@ -96,6 +97,7 @@ export function useDrawArea(id: string) {
           {
             id: nanoid(10),
             goToScreenId: null,
+            goToSide: null,
             rect,
           },
         ]);

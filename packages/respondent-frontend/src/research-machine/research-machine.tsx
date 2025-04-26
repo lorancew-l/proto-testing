@@ -95,7 +95,7 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
               const nextScreen =
                 area && question.type === 'prototype' ? question.screens.find((screen) => screen.id === area.goToScreenId) : null;
 
-              const completed = !!nextScreen?.data.areas.every((area) => !area.goToScreenId);
+              const completed = !!nextScreen?.data.targetScreen;
 
               return {
                 ...prevRecord,

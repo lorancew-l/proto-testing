@@ -167,7 +167,7 @@ export const PrototypeScreenStats = ({
 }) => {
   const { classes, cx } = useStyles();
 
-  const [tab, setTab] = useState<'heatmap' | 'clickmap' | 'image'>('heatmap');
+  const [tab, setTab] = useState<'heatmap' | 'clickmap' | 'image'>(selectedState?.sessionId ? 'clickmap' : 'heatmap');
 
   const [statsSettings, setStatsSettings] = useState<StatsSettings>({
     onlyFirstClick: false,
@@ -387,8 +387,9 @@ const PrototypeScreenGeneralStats = ({
 
           return showSetting ? (
             <FormControlLabel
-              control={<Switch checked={value} onChange={(event) => onChangeSetting(typedSetting, event.target.checked)} />}
+              key={setting}
               label={label}
+              control={<Switch checked={value} onChange={(event) => onChangeSetting(typedSetting, event.target.checked)} />}
             />
           ) : null;
         })}

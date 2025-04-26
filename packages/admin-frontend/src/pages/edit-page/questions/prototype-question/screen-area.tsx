@@ -5,12 +5,13 @@ import { alpha } from '@mui/material';
 import { Handle, Position, useUpdateNodeInternals } from '@xyflow/react';
 import { makeStyles } from 'tss-react/mui';
 
-import { useSubscribeScreenChanges } from './prototype-screen-settings-context';
+import { useSubscribeScreenChanges } from './prototype-screen-context';
 import { ResizableArea } from './resizeable-area';
 import { useAreaDrag } from './use-area-drag';
 
 const useStyles = makeStyles()((theme) => ({
   area: {
+    zIndex: 20,
     backgroundColor: alpha(theme.palette.primary.light, 0.3),
     border: `1px solid ${theme.palette.primary.dark}`,
     width: '100%',
@@ -63,7 +64,7 @@ export const ScreenArea = ({
         {...handlers}
       >
         <div onMouseDown={(e) => e.stopPropagation()}>
-          <Handle type="source" position={Position.Right} id={`${screenId}.${id}`} />
+          <Handle style={{ zIndex: 1000 }} type="source" position={Position.Right} id={id} />
         </div>
       </div>
     </ResizableArea>

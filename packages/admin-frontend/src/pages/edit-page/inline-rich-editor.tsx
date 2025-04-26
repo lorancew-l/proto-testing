@@ -48,11 +48,13 @@ export const InlineRichEditor = ({
   placeholder,
   onChange,
   ref,
+  className,
 }: {
   value: string;
   placeholder?: string;
   onChange: (value: string) => void;
   ref?: Ref<{ focus: VoidFunction; scrollIntoView: VoidFunction }>;
+  className?: string;
 }) => {
   const { classes } = useStyles();
 
@@ -85,7 +87,7 @@ export const InlineRichEditor = ({
 
   return (
     <>
-      <EditorContent editor={editor} placeholder="placeholder" ref={inputRef} />
+      <EditorContent className={className} editor={editor} placeholder="placeholder" ref={inputRef} />
       <BubbleMenu editor={editor}>
         <Paper className={classes.container} elevation={2}>
           <ToolbarAction active={!!editor?.isActive('bold')} onClick={toggleBold}>

@@ -50,10 +50,11 @@ export const updateAnswerStackRecord = (answerStack: AnswerStackRecord[], nextRe
 export const createAnswerStackRecord = (question: Question): AnswerStackRecord => {
   if (question.type === 'prototype') {
     const [firstScreen] = question.screens;
+    const startScreen = question.screens.find((screen) => screen.data.startScreen);
     return {
       submitted: false,
       questionId: question.id,
-      screenId: firstScreen?.id,
+      screenId: startScreen?.id ?? firstScreen?.id,
       type: question.type,
       givenUp: false,
       completed: false,

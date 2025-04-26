@@ -31,6 +31,7 @@ export interface PrototypeArea {
   id: string;
   rect: { top: number; left: number; width: number; height: number };
   goToScreenId: string | null;
+  goToSide: 'left' | 'right' | null;
 }
 export interface PrototypeScreen {
   id: string;
@@ -39,14 +40,17 @@ export interface PrototypeScreen {
     y: number;
   };
   data: {
-    description: string;
     imageSrc: string;
+    description: string;
     areas: PrototypeArea[];
+    startScreen: boolean;
+    targetScreen: boolean;
   };
 }
 
 export interface PrototypeQuestion extends BaseQuestion {
   type: 'prototype';
+  description: string;
   screens: PrototypeScreen[];
 }
 

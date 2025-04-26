@@ -6,6 +6,8 @@
 
 .description {
   font-size: 14px;
+  text-wrap: initial;
+  line-height: 1.6em;
 }
 
 .continueButton {

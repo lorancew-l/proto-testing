@@ -24,7 +24,11 @@ export const PrototypeQuestion = ({ question, state }: QuestionProps<'prototype'
         {completed ? (
           <TaskSuccess onContinue={() => send({ type: 'answer' })} />
         ) : (
-          <TaskDescription title={question.text} description="Placeholder" onContinue={() => setTaskDescriptionOpen(false)} />
+          <TaskDescription
+            title={question.text}
+            description={question.description}
+            onContinue={() => setTaskDescriptionOpen(false)}
+          />
         )}
       </Sidebar>
 

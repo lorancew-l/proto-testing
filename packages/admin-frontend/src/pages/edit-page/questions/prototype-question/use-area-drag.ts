@@ -2,7 +2,7 @@ import { RefObject } from 'react';
 
 import { useUpdateNodeInternals } from '@xyflow/react';
 
-import { useScreenSetValue } from './prototype-screen-settings-context';
+import { useScreenSetValue } from './prototype-screen-context';
 
 export const useAreaDrag = ({
   screenId,

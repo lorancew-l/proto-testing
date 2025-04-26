@@ -4,7 +4,7 @@ import { PrototypeArea } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
 import { getRelativeRectStyle } from './get-rect-style';
-import { useScreenController } from './prototype-screen-settings-context';
+import { useScreenController } from './prototype-screen-context';
 
 const useStyles = makeStyles()((theme) => ({
   resizeHandle: {

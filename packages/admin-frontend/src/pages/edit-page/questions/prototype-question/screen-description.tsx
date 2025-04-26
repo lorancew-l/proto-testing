@@ -1,6 +1,6 @@
 import { InlineRichEditor } from '../../inline-rich-editor';
 
-import { useScreenController } from './prototype-screen-settings-context';
+import { useScreenController } from './prototype-screen-context';
 
 export const ScreenDescription = ({ screenId }: { screenId: string }) => {
   const { value, onChange, ref } = useScreenController(screenId, 'data.description');

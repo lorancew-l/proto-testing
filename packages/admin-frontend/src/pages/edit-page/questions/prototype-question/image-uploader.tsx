@@ -20,6 +20,8 @@ const useStyles = makeStyles()((theme) => ({
     flexDirection: 'column',
     marginBottom: 0,
     borderRadius: theme.shape.borderRadius * 2,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
     border: `2px dashed #d5d6da`,
     padding: theme.spacing(4),
     '&:hover': {

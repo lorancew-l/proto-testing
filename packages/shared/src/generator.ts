@@ -70,6 +70,7 @@ export const generateQuestion = <T extends Question['type']>(
     case 'prototype':
       return {
         type,
+        description: '',
         screens: [],
         ...baseQuestion,
         ...overrides,
