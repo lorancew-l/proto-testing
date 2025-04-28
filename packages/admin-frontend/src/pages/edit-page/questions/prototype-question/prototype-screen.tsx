@@ -14,9 +14,9 @@ import { Handle, NodeProps, Position } from '@xyflow/react';
 import { PrototypeScreen as PrototypeScreenType } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
+import { getRelativeRectStyle } from '../../common';
 import { useEditPageActions } from '../../store';
 
-import { getRelativeRectStyle } from './get-rect-style';
 import { ImageUploader } from './image-uploader';
 import { EdgeDisplayMode, usePrototypeScreenContext, useScreenController } from './prototype-screen-context';
 import { ScreenArea } from './screen-area';

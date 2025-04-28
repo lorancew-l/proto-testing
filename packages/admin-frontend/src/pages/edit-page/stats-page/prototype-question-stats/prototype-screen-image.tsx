@@ -33,7 +33,6 @@ const useStyles = makeStyles()((theme) => ({
     backgroundColor: theme.palette.primary.light,
     opacity: 0.5,
     zIndex: 10,
-    cursor: 'pointer',
   },
   tooltipContent: {
     fontSize: 12,
@@ -49,16 +48,20 @@ export const PrototypeScreenImage = ({
   children,
   showAreas,
   onGoToScreen,
-  containerRef,
   className,
+  containerRef,
+  imageRef,
+  disableGoTo,
 }: {
-  screen: PrototypeScreen & { ssid?: string };
+  screen: PrototypeScreen;
   screens: PrototypeScreen[];
   children?: React.ReactNode;
   showAreas?: boolean;
-  onGoToScreen: (state: { screenId: string; ssid?: string }) => void;
-  containerRef?: Ref<HTMLDivElement | null>;
+  onGoToScreen?: (screenId: string) => void;
   className?: string;
+  containerRef?: Ref<HTMLDivElement | null>;
+  imageRef?: Ref<HTMLImageElement>;
+  disableGoTo?: boolean;
 }) => {
   const { classes, cx } = useStyles();
 
@@ -71,44 +74,47 @@ export const PrototypeScreenImage = ({
   return (
     <div className={cx(classes.screen, className)}>
       <div className={classes.imageContainer} ref={containerRef}>
-        <img className={classes.image} src={screen.data.imageSrc} draggable={false} />
+        <img className={classes.image} src={screen.data.imageSrc} draggable={false} ref={imageRef} />
 
-        {showAreas &&
-          screen.data.areas.map((area) => {
-            const goToScreenId = area.goToScreenId;
-            if (!goToScreenId) return null;
+        {screen.data.areas.map((area) => {
+          const goToScreenId = area.goToScreenId;
+          if (!goToScreenId) return null;
 
-            const screenInfo = screenMap.get(goToScreenId);
+          const screenInfo = screenMap.get(goToScreenId);
 
-            return (
-              <Tooltip
-                key={area.id}
-                enterDelay={200}
-                title={
-                  screenInfo ? (
-                    <div className={classes.tooltipContent}>
-                      <Typography component="span" fontSize={12}>{`Экран ${screenInfo.index + 1}:`}</Typography>{' '}
-                      <RichText text={screenInfo.description} />{' '}
-                    </div>
-                  ) : (
-                    ''
-                  )
-                }
-              >
-                <div
-                  role="button"
-                  className={classes.clickableArea}
-                  style={{
-                    left: `${area.rect.left}%`,
-                    top: `${area.rect.top}%`,
-                    width: `${area.rect.width}%`,
-                    height: `${area.rect.height}%`,
-                  }}
-                  onClick={() => onGoToScreen({ ssid: screen.ssid, screenId: screen.id })}
-                />
-              </Tooltip>
-            );
-          })}
+          return (
+            <Tooltip
+              key={area.id}
+              enterDelay={400}
+              title={
+                screenInfo && showAreas ? (
+                  <div className={classes.tooltipContent}>
+                    <Typography component="span" fontSize={12}>{`Экран ${screenInfo.index + 1}:`}</Typography>
+                    <RichText text={screenInfo.description} />
+                  </div>
+                ) : (
+                  ''
+                )
+              }
+            >
+              <div
+                role="button"
+                className={classes.clickableArea}
+                style={{
+                  left: `${area.rect.left}%`,
+                  top: `${area.rect.top}%`,
+                  width: `${area.rect.width}%`,
+                  height: `${area.rect.height}%`,
+                  opacity: showAreas ? 0.5 : 0,
+                  ...(disableGoTo && { pointerEvents: 'none' }),
+                }}
+                onClick={() => {
+                  onGoToScreen?.(goToScreenId);
+                }}
+              />
+            </Tooltip>
+          );
+        })}
 
         {children}
       </div>

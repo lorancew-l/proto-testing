@@ -1,3 +1,5 @@
+import React from 'react';
+
 import type { PrototypeScreen } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
@@ -37,20 +39,36 @@ export const PrototypeClickMap = ({
   screens,
   clicks,
   showAreas,
+  className,
   showClickOrder,
   onGoToScreen,
+  imageRef,
+  children,
+  disableGoTo,
 }: {
-  screen: PrototypeScreen & { ssid?: string };
+  screen: PrototypeScreen;
   screens: PrototypeScreen[];
   clicks: PrototypeQuestionClickStats;
+  className?: string;
   showAreas?: boolean;
   showClickOrder?: boolean;
-  onGoToScreen: (state: { screenId: string; ssid?: string }) => void;
+  onGoToScreen?: (screenId: string) => void;
+  imageRef?: React.Ref<HTMLImageElement>;
+  children?: React.ReactNode;
+  disableGoTo?: boolean;
 }) => {
   const { classes, cx } = useStyles();
 
   return (
-    <PrototypeScreenImage screen={screen} screens={screens} onGoToScreen={onGoToScreen} showAreas={showAreas}>
+    <PrototypeScreenImage
+      imageRef={imageRef}
+      className={className}
+      screen={screen}
+      screens={screens}
+      onGoToScreen={onGoToScreen}
+      showAreas={showAreas}
+      disableGoTo={disableGoTo}
+    >
       {clicks.map((click, index) => (
         <div
           key={click.ts}
@@ -62,6 +80,7 @@ export const PrototypeClickMap = ({
           className={cx(classes.click, { [classes.targetClick]: !!click.areaId, [classes.orderedClick]: showClickOrder })}
         />
       ))}
+      {children}
     </PrototypeScreenImage>
   );
 };

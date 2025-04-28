@@ -3,7 +3,8 @@ import { RefObject, useRef } from 'react';
 import { PrototypeArea } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
-import { getRelativeRectStyle } from './get-rect-style';
+import { getRelativeRectStyle } from '../../common';
+
 import { useScreenController } from './prototype-screen-context';
 
 const useStyles = makeStyles()((theme) => ({

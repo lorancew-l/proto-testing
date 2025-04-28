@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef } from 'react';
+import React, { RefObject, useEffect, useRef } from 'react';
 
 import h337 from 'heatmap.js';
 import type { PrototypeScreen } from 'shared';
@@ -23,14 +23,22 @@ export const PrototypeHeatMap = ({
   clicks,
   showAreas,
   onGoToScreen,
+  className,
+  imageRef,
+  children,
+  disableGoTo,
 }: {
-  screen: PrototypeScreen & { ssid?: string };
+  screen: PrototypeScreen;
   screens: PrototypeScreen[];
   clicks: PrototypeQuestionClickStats;
   showAreas?: boolean;
-  onGoToScreen: (state: { screenId: string; ssid?: string }) => void;
+  onGoToScreen?: (screenId: string) => void;
+  className?: string;
+  imageRef?: React.Ref<HTMLImageElement>;
+  children?: React.ReactNode;
+  disableGoTo?: boolean;
 }) => {
-  const { classes } = useStyles();
+  const { classes, cx } = useStyles();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -38,13 +46,17 @@ export const PrototypeHeatMap = ({
 
   return (
     <PrototypeScreenImage
-      className={classes.heatmap}
+      imageRef={imageRef}
+      className={cx(classes.heatmap, className)}
       screen={screen}
       screens={screens}
       onGoToScreen={onGoToScreen}
       showAreas={showAreas}
       containerRef={containerRef}
-    />
+      disableGoTo={disableGoTo}
+    >
+      {children}
+    </PrototypeScreenImage>
   );
 };
 

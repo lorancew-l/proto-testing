@@ -215,6 +215,7 @@ export const PrototypeQuestionStats = ({
       </QuestionStatsCard>
 
       <PrototypeScreenStats
+        key={String(!!selectedState?.sessionId)}
         stats={stats}
         screens={screens}
         selectedState={selectedState}

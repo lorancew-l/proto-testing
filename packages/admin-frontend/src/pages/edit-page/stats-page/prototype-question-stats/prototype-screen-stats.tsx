@@ -1,4 +1,4 @@
-import { forwardRef, useMemo, useState } from 'react';
+import { forwardRef, useCallback, useMemo, useState } from 'react';
 
 import { isNumber } from 'lodash';
 
@@ -18,6 +18,8 @@ import { formatTimeMinAndSec } from '../utils';
 import { PrototypeClickMap } from './prototype-click-map';
 import { PrototypeHeatMap } from './prototype-heat-map';
 import { PrototypeScreenImage } from './prototype-screen-image';
+import { AreaPreview, SelectionArea } from './selection-area';
+import { SelectionArea as SelectionAreaType, useSelectionAreas } from './use-selection-areas';
 
 const useStyles = makeStyles()((theme) => ({
   container: {
@@ -106,22 +108,13 @@ const useStyles = makeStyles()((theme) => ({
   selected: {
     borderColor: theme.palette.primary.light,
   },
+  cursorPointer: {
+    cursor: 'pointer',
+  },
+  cursorCrosshair: {
+    cursor: 'crosshair',
+  },
 }));
-
-const tabs = [
-  {
-    value: 'heatmap',
-    name: 'Тепловая карта',
-  },
-  {
-    value: 'clickmap',
-    name: 'Карта кликов',
-  },
-  {
-    value: 'image',
-    name: 'Изображение',
-  },
-] as const;
 
 const Transition = forwardRef(function Transition(
   props: TransitionProps & {
@@ -134,6 +127,7 @@ const Transition = forwardRef(function Transition(
 
 type ScreenStats = {
   respondentCount: number;
+  totalRespondentCount: number;
   clickCount: number;
   misclickCount: number;
   targetClickCount: number;
@@ -168,6 +162,24 @@ export const PrototypeScreenStats = ({
   const { classes, cx } = useStyles();
 
   const [tab, setTab] = useState<'heatmap' | 'clickmap' | 'image'>(selectedState?.sessionId ? 'clickmap' : 'heatmap');
+  const tabs = [
+    ...(selectedState?.sessionId
+      ? []
+      : ([
+          {
+            value: 'heatmap',
+            name: 'Тепловая карта',
+          },
+        ] as const)),
+    {
+      value: 'clickmap',
+      name: 'Карта кликов',
+    },
+    {
+      value: 'image',
+      name: 'Изображение',
+    },
+  ] as const;
 
   const [statsSettings, setStatsSettings] = useState<StatsSettings>({
     onlyFirstClick: false,
@@ -184,46 +196,67 @@ export const PrototypeScreenStats = ({
     return { screen, screenIndex };
   }, [selectedState?.screenId, screens]);
 
-  const screenStats = useMemo((): ScreenStats => {
-    if (!selectedState?.screenId)
+  const getScreenStats = useCallback(
+    (area?: SelectionAreaType): ScreenStats => {
+      if (!selectedState?.screenId)
+        return {
+          respondentCount: 0,
+          totalRespondentCount: 0,
+          clickCount: 0,
+          misclickCount: 0,
+          targetClickCount: 0,
+          clicks: [],
+          screenTime: { avgTime: 0, medianTime: 0 },
+        };
+
+      const sessions = selectedState.sessionId
+        ? stats.sessions.filter((session) => session.id === selectedState.sessionId)
+        : stats.sessions;
+
+      const screenTime = selectedState.screenId
+        ? (sessions[0]?.screenTime[selectedState.screenId] ?? 0)
+        : (stats.general.screenTime[selectedState.screenId] ?? { avgTime: 0, medianTime: 0 });
+
+      const uniqSessions = new Set<string>();
+
+      const clicks = sessions.flatMap((sessionStats) => {
+        const sessionsClicks = sessionStats.clicks.filter((click) => {
+          if (area && !isClickInArea(click, area)) {
+            return false;
+          }
+
+          return selectedState.ssid ? click.ssid === selectedState.ssid : click.screenId === selectedState.screenId;
+        });
+
+        if (sessionsClicks.length) uniqSessions.add(sessionStats.id);
+
+        return statsSettings.onlyFirstClick ? (sessionsClicks[0] ?? []) : sessionsClicks;
+      });
+
+      const respondentCount = uniqSessions.size;
+      const clickCount = clicks.length;
+      const misclickCount = clicks.filter((click) => !click.areaId).length;
+      const targetClickCount = clickCount - misclickCount;
+
       return {
-        respondentCount: 0,
-        clickCount: 0,
-        misclickCount: 0,
-        targetClickCount: 0,
-        clicks: [],
-        screenTime: { avgTime: 0, medianTime: 0 },
+        clicks,
+        clickCount,
+        misclickCount,
+        targetClickCount,
+        respondentCount,
+        totalRespondentCount: sessions.length,
+        screenTime,
       };
+    },
+    [selectedState, stats, statsSettings.onlyFirstClick],
+  );
 
-    const sessions = selectedState.sessionId
-      ? stats.sessions.filter((session) => session.id === selectedState.sessionId)
-      : stats.sessions;
+  const screenStats = useMemo(getScreenStats, [getScreenStats]);
 
-    const screenTime = selectedState.screenId
-      ? (sessions[0]?.screenTime[selectedState.screenId] ?? 0)
-      : (stats.general.screenTime[selectedState.screenId] ?? { avgTime: 0, medianTime: 0 });
-
-    const allSessionClicks = sessions.flatMap((sessionStats) => {
-      const clicks = sessionStats.clicks.filter((screenStats) =>
-        selectedState.ssid ? screenStats.ssid === selectedState.ssid : screenStats.screenId === selectedState.screenId,
-      );
-      return statsSettings.onlyFirstClick ? (clicks[0] ?? []) : clicks;
-    });
-
-    const respondentCount = sessions.length;
-    const clickCount = allSessionClicks.length;
-    const misclickCount = allSessionClicks.filter((click) => !click.areaId).length;
-    const targetClickCount = clickCount - misclickCount;
-
-    return {
-      respondentCount,
-      clickCount,
-      misclickCount,
-      targetClickCount,
-      clicks: allSessionClicks,
-      screenTime,
-    };
-  }, [selectedState, stats, statsSettings.onlyFirstClick]);
+  const { imageRef, areas, areaPreview, deleteArea } = useSelectionAreas({
+    screenId: `${selectedState?.screenId}${tab}`,
+    disabled: !statsSettings.areaSelection,
+  });
 
   const moveToScreen = (index: number) => {
     const nextScreen = screens[index];
@@ -250,6 +283,34 @@ export const PrototypeScreenStats = ({
 
   const handleSettingChange: SettingChangeHandler = (setting, value) => {
     setStatsSettings((prev) => ({ ...prev, [setting]: value }));
+  };
+
+  const handleGoToScreenByClick = (screenId: string) => {
+    if (!selectedState?.sessionId) {
+      onScreenSelect({ screenId });
+    }
+  };
+
+  const imageProps = {
+    screen,
+    screens,
+    imageRef,
+    clicks: screenStats.clicks,
+    showAreas: statsSettings.showClickableArea,
+    disableGoTo: statsSettings.areaSelection,
+    onGoToScreen: handleGoToScreenByClick,
+    className: cx({
+      [classes.cursorPointer]: !selectedState?.sessionId && !statsSettings.areaSelection,
+      [classes.cursorCrosshair]: !!statsSettings.areaSelection,
+    }),
+    children: (
+      <>
+        {areaPreview && <AreaPreview area={areaPreview} />}
+        {areas.map((area) => (
+          <SelectionArea key={area.id} area={area} stats={getScreenStats(area)} onClick={deleteArea} />
+        ))}
+      </>
+    ),
   };
 
   return (
@@ -291,35 +352,9 @@ export const PrototypeScreenStats = ({
           <div className={classes.content}>
             {screen && (
               <div className={classes.image}>
-                {tab === 'heatmap' && (
-                  <PrototypeHeatMap
-                    screen={screen}
-                    screens={screens}
-                    clicks={screenStats.clicks}
-                    showAreas={statsSettings.showClickableArea}
-                    onGoToScreen={onScreenSelect}
-                  />
-                )}
-
-                {tab === 'clickmap' && (
-                  <PrototypeClickMap
-                    screen={screen}
-                    screens={screens}
-                    clicks={screenStats.clicks}
-                    showAreas={statsSettings.showClickableArea}
-                    showClickOrder={statsSettings.showClickOrder && !!selectedState?.sessionId}
-                    onGoToScreen={onScreenSelect}
-                  />
-                )}
-
-                {tab === 'image' && (
-                  <PrototypeScreenImage
-                    screen={screen}
-                    screens={screens}
-                    showAreas={statsSettings.showClickableArea}
-                    onGoToScreen={onScreenSelect}
-                  />
-                )}
+                {tab === 'heatmap' && <PrototypeHeatMap {...imageProps} />}
+                {tab === 'clickmap' && <PrototypeClickMap {...imageProps} />}
+                {tab === 'image' && <PrototypeScreenImage {...imageProps} />}
               </div>
             )}
 
@@ -328,7 +363,7 @@ export const PrototypeScreenStats = ({
                 onlyFirstClick: true,
                 showClickOrder: !!selectedState?.sessionId && tab === 'clickmap',
                 showClickableArea: true,
-                areaSelection: true,
+                areaSelection: !selectedState?.sessionId,
               }}
               stats={screenStats}
               settings={statsSettings}
@@ -364,7 +399,7 @@ const PrototypeScreenGeneralStats = ({
   return (
     <div className={classes.generalStats}>
       <div>
-        <Metric label="Респонденты" value={stats.respondentCount} />
+        <Metric label="Респонденты" value={stats.totalRespondentCount} />
         <Metric label="Клики" value={stats.clickCount} />
         <Metric label="Промахи" value={stats.misclickCount} from={stats.clickCount} />
         <Metric label="Попадания" value={stats.targetClickCount} from={stats.clickCount} />
@@ -421,3 +456,7 @@ const Metric = ({ label, value, from }: { label: string; value: number | string;
     </div>
   );
 };
+
+function isClickInArea(click: { x: number; y: number }, area: SelectionAreaType) {
+  return click.x >= area.left && click.x <= area.left + area.width && click.y >= area.top && click.y <= area.top + area.height;
+}

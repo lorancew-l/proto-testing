@@ -4,23 +4,23 @@ import { useReactFlow } from '@xyflow/react';
 import { nanoid } from 'nanoid';
 
 import { useScreenSetValue, useScreenWatch } from './prototype-screen-context';
-import { minimumAreaSideSizePx, rectIntersection } from './utils';
+
+const minimumAreaSideSizePx = 20;
 
 export function useDrawArea(id: string) {
   const imageSrc = useScreenWatch(id, 'data.imageSrc');
   const { setFieldValue: setAreas, getFieldValue: getCurrentAreas } = useScreenSetValue(id, 'data.areas');
 
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const [areaGhost, setRectangleGhost] = useState<{ xStart: number; yStart: number; xEnd: number; yEnd: number } | null>(null);
-  const currentRectangleGhost = useRef(areaGhost);
-  currentRectangleGhost.current = areaGhost;
+  const [areaGhost, setAreaGhost] = useState<{ xStart: number; yStart: number; xEnd: number; yEnd: number } | null>(null);
+  const currentAreaGhost = useRef(areaGhost);
+  currentAreaGhost.current = areaGhost;
 
   const { getZoom } = useReactFlow();
 
   const calculateAreaRect = () => {
     const image = imageRef.current;
-
-    const areaGhost = currentRectangleGhost.current;
+    const areaGhost = currentAreaGhost.current;
 
     if (image && areaGhost) {
       const imageRect = image.getBoundingClientRect();
@@ -69,7 +69,7 @@ export function useDrawArea(id: string) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
 
-      setRectangleGhost({ xStart: startX, yStart: startY, xEnd: startX, yEnd: startY });
+      setAreaGhost({ xStart: startX, yStart: startY, xEnd: startX, yEnd: startY });
     };
 
     const handleMouseMove = (event: MouseEvent) => {
@@ -79,7 +79,7 @@ export function useDrawArea(id: string) {
       const x = Math.min(Math.max(event.clientX - imageRect.left, 0), imageRect.width) / zoom;
       const y = Math.min(Math.max(event.clientY - imageRect.top, 0), imageRect.height) / zoom;
 
-      setRectangleGhost((prev) => {
+      setAreaGhost((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
@@ -105,7 +105,7 @@ export function useDrawArea(id: string) {
 
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
-      setRectangleGhost(null);
+      setAreaGhost(null);
     };
 
     image.addEventListener('mousedown', handleMouseDown);
@@ -117,4 +117,22 @@ export function useDrawArea(id: string) {
   }, [imageSrc]);
 
   return { imageRef, areaGhost: calculateAreaRect(), isAreaGhostValid: isCurrentAreaValid() };
+}
+
+type Rect = {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+};
+
+function rectIntersection(rect: Rect, rects: Rect[]): boolean {
+  return rects.some((r) => {
+    return (
+      rect.left < r.left + r.width &&
+      rect.left + rect.width > r.left &&
+      rect.top < r.top + r.height &&
+      rect.top + rect.height > r.top
+    );
+  });
 }
