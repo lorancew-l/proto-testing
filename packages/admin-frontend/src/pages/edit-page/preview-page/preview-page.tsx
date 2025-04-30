@@ -27,7 +27,7 @@ const useStyles = makeStyles()(() => ({
 
 export const PreviewPage = () => {
   const { classes } = useStyles();
-  const { getResearch } = useEditPageActions();
+  const { getResearch, getResearchMetadata } = useEditPageActions();
 
   const previewPage = useMemo(() => {
     return `
@@ -39,7 +39,7 @@ export const PreviewPage = () => {
           <div id="research-root"></div>
           <script>
             window.DEV_MODE = true;
-            window.research=${JSON.stringify({ ...getResearch(), revision: 1 })}
+            window.research=${JSON.stringify({ ...getResearch(), id: getResearchMetadata().id, revision: getResearchMetadata().publishedRevision ?? 1 })}
           </script>
           <script src="${import.meta.env.VITE_RESPONDENT_ENTRYPOINT_URL}"></script>
       </html>
