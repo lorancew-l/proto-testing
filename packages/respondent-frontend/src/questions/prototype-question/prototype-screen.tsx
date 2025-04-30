@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { CSSTransition, SwitchTransition } from 'react-transition-group';
 
 import type { PrototypeArea, PrototypeScreen as PrototypeScreenType } from 'shared';
 
@@ -36,13 +37,28 @@ export const PrototypeScreen = ({
   return (
     <div className={styles.screen}>
       <div className={styles.imageContainer}>
-        <img
-          ref={imageRef}
-          className={styles.image}
-          src={screen.data.imageSrc}
-          draggable={false}
-          onClick={(event) => handleImageClick(event, null)}
-        />
+        <SwitchTransition mode="out-in">
+          <CSSTransition
+            key={screen.id}
+            timeout={300}
+            classNames={{
+              enter: styles.fadeEnter,
+              enterActive: styles.fadeEnterActive,
+              exit: styles.fadeExit,
+              exitActive: styles.fadeExitActive,
+            }}
+            nodeRef={imageRef}
+            unmountOnExit
+          >
+            <img
+              ref={imageRef}
+              className={styles.image}
+              src={screen.data.imageSrc}
+              draggable={false}
+              onClick={(event) => handleImageClick(event, null)}
+            />
+          </CSSTransition>
+        </SwitchTransition>
 
         {screen.data.areas.map((area) => (
           <div

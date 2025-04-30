@@ -16,27 +16,18 @@ export const PrototypeQuestion = ({ question, state }: QuestionProps<'prototype'
   const [taskDescriptionOpen, setTaskDescriptionOpen] = useState(true);
   const { send } = useResearchMachineContext();
 
-  const currentScreenId = state.type === 'prototype' ? (getPrototypeLastScreenState(state.answers)?.screenId ?? null) : null;
-  const currentScreen = currentScreenId ? (question.screens.find((screen) => screen.id === currentScreenId) ?? null) : null;
+  const screenId = state.type === 'prototype' ? (getPrototypeLastScreenState(state.answers)?.screenId ?? null) : null;
   const completed = state.type === 'prototype' && state.completed;
 
+  const currentScreen = screenId ? (question.screens.find((screen) => screen.id === screenId) ?? null) : null;
+
   const handleScreenClick = (click: { x: number; y: number }, area: PrototypeArea | null) => {
-    send({
-      type: 'selectAnswer',
-      answer: {
-        type: 'prototype',
-        click: { ...click, area },
-      },
-    });
+    send({ type: 'selectAnswer', answer: { type: 'prototype', click: { ...click, area } } });
   };
 
-  const handleAnswer = () => {
-    send({ type: 'answer' });
-  };
+  const handleAnswer = () => send({ type: 'answer' });
 
-  const handleGiveUp = () => {
-    send({ type: 'selectAnswer', answer: { type: 'prototype', givenUp: true } });
-  };
+  const handleGiveUp = () => send({ type: 'selectAnswer', answer: { type: 'prototype', givenUp: true } });
 
   return (
     <div className={styles.root}>
