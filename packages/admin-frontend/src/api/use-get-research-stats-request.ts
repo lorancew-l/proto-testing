@@ -2,30 +2,24 @@ import { useCallback } from 'react';
 
 import { UseFetch, useFetch } from './use-fetch';
 
-export type PrototypeQuestionClickStats = {
-  x: number;
-  y: number;
-  screenId: string;
-  ts: number;
-  areaId: string | null;
-}[];
-
 export type PrototypeQuestionSessionStats = {
   id: string;
-  clicks: {
-    x: number;
-    y: number;
-    ssid: string;
-    screenId: string;
-    ts: number;
-    areaId: string | null;
-  }[];
-  screenTime: Record<string, number>;
   startTs: number;
   endTs: number;
   completed: boolean;
   givenUp: boolean;
+  answers: PrototypeScreenAnswerStats[];
 };
+
+export type PrototypeScreenAnswerStats = {
+  screenId: string;
+  startTs: number;
+  endTs: number;
+  ssid: string;
+  clicks: { x: number; y: number; areaId: string | null; ts: number }[];
+};
+
+export type PrototypeQuestionClickStats = PrototypeScreenAnswerStats['clicks'];
 
 export type PrototypeSessionAggregateStats = {
   count: number;

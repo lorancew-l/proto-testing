@@ -147,7 +147,7 @@ export const PrototypeQuestionStats = ({
   const screens = useMemo((): (PrototypeScreen & { ssid?: string })[] => {
     const session = selectedState?.sessionId ? stats.sessions.find((session) => session.id === selectedState.sessionId) : null;
     if (!session) return question.screens;
-    return getSessionScreenPath(session, screenMap).map(({ ssid, screenId }) => ({ ...screenMap.get(screenId)!, ssid }));
+    return session.answers.map((answer) => ({ ...screenMap.get(answer.screenId)!, ssid: answer.ssid }));
   }, [question.screens, stats, selectedState?.sessionId]);
 
   return (
@@ -369,8 +369,6 @@ const SessionStats = ({
 }) => {
   const { classes, cx } = useStyles();
 
-  const screenPath = useMemo(() => getSessionScreenPath(session, screenMap), [session, screenMap]);
-
   return (
     <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
       <TableCell component="th" scope="row" padding="none" sx={{ whiteSpace: 'nowrap' }}>
@@ -389,7 +387,7 @@ const SessionStats = ({
       </TableCell>
       <TableCell align="left">
         <div className={classes.sessionScreens}>
-          {screenPath.map(({ screenId, ssid }) => {
+          {session.answers.map(({ screenId, ssid }) => {
             const screen = screenMap.get(screenId);
             return screen ? (
               <ScreenPreviewCard
@@ -404,26 +402,3 @@ const SessionStats = ({
     </TableRow>
   );
 };
-
-function getSessionScreenPath(session: PrototypeQuestionSessionStats, screenMap: Map<string, PrototypeScreen>) {
-  const { screenPath } = session.clicks.reduce<{ screenPath: { screenId: string; ssid: string }[]; prevSsid: string | null }>(
-    (result, click) => {
-      if (result.prevSsid !== click.ssid) {
-        result.screenPath.push({ screenId: click.screenId, ssid: click.ssid });
-        result.prevSsid = click.ssid;
-      }
-
-      if (click.areaId) {
-        const screen = screenMap.get(click.screenId);
-        const area = screen?.data.areas.find((area) => area.id === click.areaId);
-        const goToScreen = area?.goToScreenId ? screenMap.get(area.goToScreenId) : null;
-        if (goToScreen?.data.targetScreen) result.screenPath.push({ screenId: goToScreen.id, ssid: 'target' });
-      }
-
-      return result;
-    },
-    { screenPath: [], prevSsid: null },
-  );
-
-  return screenPath;
-}

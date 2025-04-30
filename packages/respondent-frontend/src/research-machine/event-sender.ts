@@ -41,8 +41,7 @@ export class EventSender implements IEventSender {
   private buildAnswers(event: Extract<ResearchEvent, { type: 'research-answer' }>) {
     if (event.answer.type === 'prototype') {
       return JSON.stringify({
-        clicks: event.answer.answers,
-        screenTime: event.answer.screenTime,
+        answers: event.answer.answers,
         startTs: event.answer.startTs,
         endTs: event.answer.endTs,
         completed: event.answer.completed,

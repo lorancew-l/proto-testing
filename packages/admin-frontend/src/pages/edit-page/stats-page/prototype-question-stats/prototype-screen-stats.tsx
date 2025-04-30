@@ -213,19 +213,28 @@ export const PrototypeScreenStats = ({
         ? stats.sessions.filter((session) => session.id === selectedState.sessionId)
         : stats.sessions;
 
-      const screenTime = selectedState.screenId
-        ? (sessions[0]?.screenTime[selectedState.screenId] ?? 0)
-        : (stats.general.screenTime[selectedState.screenId] ?? { avgTime: 0, medianTime: 0 });
+      let screenTime: number | { avgTime: number; medianTime: number };
+
+      if (selectedState.ssid) {
+        const [selectedSession] = sessions;
+        const screenStats = selectedSession.answers.find((screen) => screen.ssid === selectedState.ssid);
+        screenTime = screenStats ? screenStats.endTs - screenStats.startTs : 0;
+      } else {
+        screenTime = stats.general.screenTime[selectedState.screenId] ?? { avgTime: 0, medianTime: 0 };
+      }
 
       const uniqSessions = new Set<string>();
 
       const clicks = sessions.flatMap((sessionStats) => {
-        const sessionsClicks = sessionStats.clicks.filter((click) => {
-          if (area && !isClickInArea(click, area)) {
-            return false;
-          }
-
-          return selectedState.ssid ? click.ssid === selectedState.ssid : click.screenId === selectedState.screenId;
+        const sessionsClicks = sessionStats.answers.flatMap((screen) => {
+          const isSelectedScreen = selectedState.ssid
+            ? screen.ssid === selectedState.ssid
+            : screen.screenId === selectedState.screenId;
+          return isSelectedScreen
+            ? screen.clicks.filter((click) => {
+                return !area || isClickInArea(click, area);
+              })
+            : [];
         });
 
         if (sessionsClicks.length) uniqSessions.add(sessionStats.id);

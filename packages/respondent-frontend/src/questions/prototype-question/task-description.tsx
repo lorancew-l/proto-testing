@@ -7,10 +7,12 @@ export const TaskDescription = ({
   title,
   description,
   onContinue,
+  onGiveUp,
 }: {
   title: string;
   description: string;
   onContinue: VoidFunction;
+  onGiveUp: VoidFunction;
 }) => {
   return (
     <>
@@ -20,9 +22,13 @@ export const TaskDescription = ({
         <RichText text={description} className={styles.description} />
       </div>
 
-      <Button className={styles.continueButton} onClick={onContinue}>
-        Продолжить
-      </Button>
+      <div className={styles.actions}>
+        <Button variant="plain" onClick={onGiveUp}>
+          Не могу выполнить задание
+        </Button>
+
+        <Button onClick={onContinue}>Продолжить</Button>
+      </div>
     </>
   );
 };

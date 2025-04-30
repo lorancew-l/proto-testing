@@ -9,10 +9,11 @@ export type ResearchMachineEvents =
         | { type: SingleQuestion['type']; answerId: string }
         | {
             type: PrototypeQuestion['type'];
-            screenId: string;
-            ssid: string;
-            screenTime: number;
             click: { x: number; y: number; area: PrototypeArea | null };
+          }
+        | {
+            type: PrototypeQuestion['type'];
+            givenUp: true;
           };
     }
   | { type: 'answer' }
@@ -44,10 +45,16 @@ export type PrototypeQuestionAnswerState = {
   endTs: number | null;
   completed: boolean;
   givenUp: boolean;
-  screenTime: Record<string, number>;
-  answers: { x: number; y: number; screenId: string; ssid: string; ts: number; areaId: string | null }[];
+  answers: PrototypeScreenState[];
 };
 
+export type PrototypeScreenState = {
+  screenId: string;
+  startTs: number;
+  endTs: number;
+  ssid: string;
+  clicks: { x: number; y: number; areaId: string | null; ts: number }[];
+};
 type QuestionAnswerState =
   | SingleQuestionAnswerState
   | MultipleQuestionAnswerState
@@ -56,7 +63,6 @@ type QuestionAnswerState =
 
 export type AnswerStackRecord = {
   questionId: string;
-  screenId?: string;
   submitted: boolean;
 } & QuestionAnswerState;
 

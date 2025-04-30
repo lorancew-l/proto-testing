@@ -8,19 +8,19 @@ import { StatisticsProviderService } from './statistics-provider.service';
 type GenericQuestionStats = Record<string | number, number> & { total: number };
 
 type PrototypeQuestionSessionStats = {
-  clicks: {
-    x: number;
-    y: number;
-    ssid: string;
-    screenId: string;
-    ts: number;
-    areaId: string | null;
-  }[];
-  screenTime: Record<string, number>;
   startTs: number;
-  endTs: number | null;
+  endTs: number;
   completed: boolean;
   givenUp: boolean;
+  answers: PrototypeScreenAnswers[];
+};
+
+type PrototypeScreenAnswers = {
+  screenId: string;
+  startTs: number;
+  endTs: number;
+  ssid: string;
+  clicks: { x: number; y: number; areaId: string | null; ts: number }[];
 };
 
 type PrototypeSessionAggregateStats = {
@@ -211,17 +211,19 @@ export class ResearchStatisticsService {
         }
 
         const session = JSON.parse(row.answers) as PrototypeQuestionSessionStats;
-        if (session.endTs) {
-          const duration = session.endTs - session.startTs;
-          prototypeStats.total.push(duration);
-          if (session.completed) prototypeStats.completed.push(duration);
-          if (session.givenUp) prototypeStats.givenUp.push(duration);
-          Object.entries(session.screenTime).map(([screen, time]) => {
-            const screenTime = prototypeStats.screenTime[screen] ?? [];
-            screenTime.push(time);
-            prototypeStats.screenTime[screen] = screenTime;
-          });
-        }
+
+        const duration = session.endTs - session.startTs;
+        prototypeStats.total.push(duration);
+        if (session.completed) prototypeStats.completed.push(duration);
+        if (session.givenUp) prototypeStats.givenUp.push(duration);
+
+        session.answers.forEach(({ screenId, startTs, endTs }) => {
+          const duration = endTs - startTs;
+          const screenTime = prototypeStats.screenTime[screenId] ?? [];
+          screenTime.push(duration);
+          prototypeStats.screenTime[screenId] = screenTime;
+        });
+
         stats.sessions.push({ ...session, id: row.session_id });
       }
 

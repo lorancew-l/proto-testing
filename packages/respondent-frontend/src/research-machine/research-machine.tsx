@@ -9,17 +9,20 @@ import type {
   AnswerStackRecord,
   PendingEvent,
   PendingEventStatusUpdate,
-  PrototypeQuestionAnswerState,
   ResearchMachineContext,
   ResearchMachineEvents,
 } from './types';
 import {
   calculateNextScreen,
   createInitialContext,
+  generatePrototypeScreenState,
+  getAnswerStackLastRecord,
   getAnswerStackRecord,
+  getPrototypeLastScreenState,
   getQuestion,
   pushPendingEvent,
   updateAnswerStackRecord,
+  updatePrototypeLastScreenState,
 } from './utils';
 
 const createResearchMachine = ({ context, eventSender }: { context: ResearchMachineContext; eventSender: IEventSender }) =>
@@ -86,12 +89,26 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
                 answers: [answer.answerId],
               };
             case 'prototype':
-              const { click, screenId, ssid, screenTime } = answer;
-              const { area } = click;
-
               const prevRecord = answerStackRecord as Extract<AnswerStackRecord, { type: 'prototype' }>;
 
-              const currentScreenId = prevRecord.screenId;
+              if ('givenUp' in answer) {
+                return {
+                  ...prevRecord,
+                  givenUp: true,
+                  endTs: Date.now(),
+                  answers: updatePrototypeLastScreenState(prevRecord.answers, (answer) => ({
+                    ...answer,
+                    endTs: Date.now(),
+                  })),
+                };
+              }
+
+              const { click } = answer;
+              const { area } = click;
+
+              const lastScreenState = getPrototypeLastScreenState(prevRecord.answers);
+              if (!lastScreenState) return prevRecord;
+
               const nextScreen =
                 area && question.type === 'prototype' ? question.screens.find((screen) => screen.id === area.goToScreenId) : null;
 
@@ -99,15 +116,16 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
 
               return {
                 ...prevRecord,
-                type: answer.type,
                 completed,
                 givenUp: false,
-                ...(nextScreen && { screenId: nextScreen.id }),
-                ...(completed && { endTs: Date.now() }),
-                ...(nextScreen && currentScreenId && { screenTime: { ...prevRecord.screenTime, [currentScreenId]: screenTime } }),
+                endTs: Date.now(),
                 answers: [
-                  ...(answerStackRecord.answers as PrototypeQuestionAnswerState['answers']),
-                  { x: click.x, y: click.y, screenId, ssid, areaId: area?.id ?? null, ts: Date.now() },
+                  ...updatePrototypeLastScreenState(prevRecord.answers, (answer) => ({
+                    ...answer,
+                    endTs: Date.now(),
+                    clicks: [...answer.clicks, { x: click.x, y: click.y, areaId: area?.id ?? null, ts: Date.now() }],
+                  })),
+                  ...(nextScreen ? [generatePrototypeScreenState(nextScreen.id)] : []),
                 ],
               };
             default:
@@ -141,8 +159,7 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
         };
       }),
       scheduleAnswerEvent: assign(({ context }) => {
-        const answerStack = context.state.answerStack;
-        const lastRecord = answerStack[answerStack.length - 1];
+        const lastRecord = getAnswerStackLastRecord(context.state);
 
         return {
           state: lastRecord
@@ -213,6 +230,10 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
       isNotStarted: ({ context }) => !context.state.started,
       isValidAnswer: () => true,
       isResearchFinished: ({ context }) => context.state.finished,
+      shouldAutoCommitAnswer: ({ context }) => {
+        const lastRecord = getAnswerStackLastRecord(context.state);
+        return lastRecord && lastRecord.type === 'prototype' && lastRecord.givenUp;
+      },
     },
   }).createMachine({
     /** @xstate-layout N4IgpgJg5mDOIC5QCc5gIbIMYAsDEADmAHYQCWxUAogG4kAuAyvevQK6wCqBErYA2gAYAuolAEA9rDL0yE4mJAAPRAHYAnKoB0ADgBsAVgBMB9QdWmAjHqMAaEAE9EAWgP6tgy5YDMgvV+MdAwAWAF9Q+1RYDGx8IVEkEElpWXlFFQQQ9S1VIz1vLMELdR1veycEV1Kc-29rQRLg4O8dcMi0TFwtWBZkejx4xWSZOQVEjOcAvS06o29fHUEDQSN1O0cXI2DpvW3LVV3NXxKDNpAomK6ARzY4VOJGLFQSbrYAIwBbGXpIPGiAGzAWHoAEFiLAAO5gZCDRLDe7pFz6SxafLePQYpbqArNcqISyaLRuYIGPR+YKWPyCdFnC6dHBaG53UaPZ7EV6fb6-AFA0HgqEwywJcRSEZpcZIslaHzosnBA6GUx4hA4mYtHQ6VQ6awHMy0jqxRm3Hosp5gF6wd5feg-CB4dD86GwkUpUaIyqrFHBIIGbzyyzbbzqZVGSm6Hy5dTqCPy1oRc4G67G+6s83sy2cm2-B2Qp1CoaihESj1BXSqBrlgpGPwmZWq+YazXavS607xumGpkm+Spi1W74UKBaAjICRYODSSgDEQF13i0AZAkowwUilLJbl4MbBCqbxaba+taa9R6bHzfXRelG5k9s19zOySjD0fj2CTqADfNwwtu4u+5clN4qzNLseSWMq7iniSyzel4JR5BelwMl2KZ3um-Y2oOWhgHQxBMCQEDQlQyCjsgeCoPQyAOLQDCMARg7OkkP7zsoiDBOoghaCe1bRv4RilCSdZaqi6jBCsBIGG4+iaIhV4oaabIctaj5DjhtEEURJESGRjHwr+C6IEGRhEm4GgEvo8zBOsFRzJxoZ6NqJQaEBJRxu0l6dsmClpt0YCAsCAByYBKEwaHTsKTFzmMBkIJYOjGZqBj7A5R5iWYyrOKGBj7vkQS5UemphO2ibIV5t6KTygXBaFbKfhFeksRMSXZPsfghCYdQaMEGWhpxlJNLu-FeC0bjhPGxASIR8CJB2uCzmK0WsZUEZ7vM1Ikqo1j8YYGXNCi-XbPkWq7r6qiyYaPSYPQ81FjFkxAdla1+uYW36AYPWWMZOKHhYzXbG5CYeUmN4PGhN36UtzgcdkaIYmSpg4mU26ZYSRibXBGqmII7HncD3agxVGG2uDjUuOxOj7pScwYt6-jyiG8wzAcoYEksBRxbjpUg726EPoOJOLYuu4zOxAS5A0JTgcjnHyjxfEFA5lKqEV7lIde+M80pA5PiOY4Tvz35Re6RihiL0aWOYPGSyGJsmS2OgUvZxg+Jz6uoYTfNPmpeF0aQmmkQL7qmBTJI4rTWryu924m8ZkktsHVkcf4eiu-J5U+ZV9BBSFPOB8W1bGdivoO80A1WXoGUlES2PWDojTegUAOzQyABmFBkLAOCQHnMWUisWgm008w+GsWoZRJ0pJY3gjkjKY2hEAA */
@@ -249,7 +270,7 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
                   actions: ['scheduleStartEvent', 'selectAnswer'],
                 },
                 {
-                  target: 'submitted',
+                  target: 'answering',
                   actions: 'selectAnswer',
                 },
               ],
@@ -265,6 +286,18 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
                 },
               ],
             },
+          },
+          answering: {
+            always: [
+              {
+                guard: 'shouldAutoCommitAnswer',
+                target: 'submitting',
+                actions: 'scheduleAnswerEvent',
+              },
+              {
+                target: 'submitted',
+              },
+            ],
           },
           submitting: {
             initial: 'processing',

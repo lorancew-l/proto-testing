@@ -1,12 +1,20 @@
 .button {
-  all: unset;
+  border: none;
+  background-color: transparent;
   cursor: pointer;
+  position: relative;
+}
+
+.contained {
   border-radius: 8px;
   padding: var(--spacing-xxs);
   border: 1px solid var(--border);
   background-color: var(--accent);
   color: white;
-  position: relative;
+}
+
+.plain {
+  color: var(--accent);
 }
 
 .button:hover {

@@ -10,6 +10,8 @@
   line-height: 1.6em;
 }
 
-.continueButton {
+.actions {
   margin-left: auto;
+  display: flex;
+  gap: var(--spacing-xs);
 }
