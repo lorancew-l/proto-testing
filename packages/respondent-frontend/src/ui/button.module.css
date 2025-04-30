@@ -31,3 +31,16 @@
   top: 50%;
   transform: translate(-50%, -50%);
 }
+
+.fullWidth {
+  flex-grow: 1;
+  width: 100%;
+}
+
+@media (max-width: 599px) {
+  .button {
+    border-radius: 12px;
+    font-size: 17px;
+    line-height: 20px;
+  }
+}

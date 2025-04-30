@@ -13,5 +13,13 @@
 .actions {
   margin-left: auto;
   display: flex;
+  margin-top: var(--spacing-s);
   gap: var(--spacing-xs);
+}
+
+@media (max-width: 599px) {
+  .actions {
+    margin-left: 0;
+    flex-direction: column-reverse;
+  }
 }

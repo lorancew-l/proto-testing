@@ -1,0 +1,14 @@
+.wrapper {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--spacing-s);
+  padding-top: 15vh;
+}
+
+@media (max-width: 599px) {
+  .wrapper {
+    padding-top: 5vh;
+  }
+}

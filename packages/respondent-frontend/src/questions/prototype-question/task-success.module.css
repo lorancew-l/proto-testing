@@ -16,5 +16,17 @@
 }
 
 .continueButton {
+  margin-top: var(--spacing-s);
   margin-left: auto;
+}
+
+@media (max-width: 599px) {
+  .continueButton {
+    margin-top: var(--spacing-m);
+    margin-left: 0;
+  }
+
+  .message {
+    gap: var(--spacing-xs);
+  }
 }

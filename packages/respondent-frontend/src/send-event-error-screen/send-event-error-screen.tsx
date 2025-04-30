@@ -1,7 +1,7 @@
 import NetworkErrorIcon from '../assets/network-error-icon.svg?react';
 import { useResearchMachineContext } from '../research-machine';
 import { useResearchStatePredicate } from '../research-machine/research-machine';
-import { Button } from '../ui';
+import { Button, CenteredContentWrapper } from '../ui';
 
 import styles from './send-event-error-screen.module.css';
 
@@ -10,7 +10,7 @@ export const SendEventErrorScreen = () => {
   const retrying = useResearchStatePredicate({ questionScreen: { submitting: 'processing' } });
 
   return (
-    <div className={styles.wrapper}>
+    <CenteredContentWrapper>
       <div className={styles.content}>
         <NetworkErrorIcon className={styles.icon} />
 
@@ -20,6 +20,6 @@ export const SendEventErrorScreen = () => {
           Повторить отправку
         </Button>
       </div>
-    </div>
+    </CenteredContentWrapper>
   );
 };

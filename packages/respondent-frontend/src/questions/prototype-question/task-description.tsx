@@ -1,4 +1,5 @@
 import { Button } from '../../ui';
+import { useMediaQuery } from '../../utils';
 import { RichText } from '../rich-text';
 
 import styles from './task-description.module.css';
@@ -14,6 +15,8 @@ export const TaskDescription = ({
   onContinue: VoidFunction;
   onGiveUp: VoidFunction;
 }) => {
+  const isMobile = useMediaQuery('(max-width: 599px)');
+
   return (
     <>
       <div>
@@ -23,11 +26,13 @@ export const TaskDescription = ({
       </div>
 
       <div className={styles.actions}>
-        <Button variant="plain" onClick={onGiveUp}>
+        <Button variant="plain" onClick={onGiveUp} fullWidth={isMobile}>
           Не могу выполнить задание
         </Button>
 
-        <Button onClick={onContinue}>Продолжить</Button>
+        <Button onClick={onContinue} fullWidth={isMobile}>
+          Продолжить
+        </Button>
       </div>
     </>
   );
