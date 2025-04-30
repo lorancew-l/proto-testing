@@ -306,6 +306,7 @@ export const PrototypeScreenStats = ({
     imageRef,
     clicks: screenStats.clicks,
     showAreas: statsSettings.showClickableArea,
+    showClickOrder: statsSettings.showClickOrder,
     disableGoTo: statsSettings.areaSelection,
     onGoToScreen: handleGoToScreenByClick,
     className: cx({
