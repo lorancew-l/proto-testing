@@ -16,7 +16,7 @@ const swaggerConfig = new DocumentBuilder()
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableCors({ origin: ['https://example.org'] });
+
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb' }));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));

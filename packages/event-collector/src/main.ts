@@ -19,7 +19,7 @@ async function bootstrap() {
   app.use(urlencoded({ limit: '50mb' }));
 
   app.enableCors({
-    origin: [/^http:\/\/localhost:\d+$/],
+    origin: [/^http:\/\/localhost(:\d+)?$/],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });

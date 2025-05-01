@@ -12,7 +12,7 @@
     "typecheck": "pnpm tsc --noEmit",
     "build": "nest build",
     "db:migrate:dev": "ts-node ./src/database/init.ts",
-    "db:migrate:deploy": "node ./src/database/init.ts"
+    "db:migrate:deploy": "tsx ./src/database/init.ts"
   },
   "dependencies": {
     "@clickhouse/client": "1.11.0",

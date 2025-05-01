@@ -1,5 +1,6 @@
-FROM node:20-alpine as base
-RUN corepack enable && npm install -g prisma
+FROM node:20-slim as base
+RUN apt-get update && apt-get install -y openssl && \
+  npm install -g pnpm@8.8.0 prisma
 
 FROM base AS build
 WORKDIR /usr/src/app
@@ -7,7 +8,7 @@ COPY . ./
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile &&\
   pnpm --filter 'respondent-backend' build &&\
   pnpm deploy --filter='respondent-backend' --prod /backend &&\
-  cp -r ./packages/backend/node_modules/.prisma /backend/node_modules/.prisma
+  cp -r ./packages/respondent-backend/node_modules/.prisma /backend/node_modules/.prisma
 
 FROM build AS backend
 COPY --from=build /backend /backend

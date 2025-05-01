@@ -7,14 +7,4 @@ import { ResearchModule } from './research/research.module';
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), PublicationModule, ResearchModule],
 })
-export class AppModule {
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer
-  //     .apply(
-  //       cors({
-  //         origin: '*',
-  //       }),
-  //     )
-  //     .forRoutes({ path: '/:id', method: RequestMethod.GET });
-  // }
-}
+export class AppModule {}

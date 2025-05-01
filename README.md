@@ -62,5 +62,5 @@ pnpm start:dev:event-collector
 ## Запуск проекта в prod-режиме
 
 ```sh
-docker-compose -f docker-compose.prod.yml --env-file .env up -d --build
+docker-compose -f docker-compose.prod.yml -p proto-testing-prod --env-file .env up -d --build
 ```

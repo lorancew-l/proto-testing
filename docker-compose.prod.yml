@@ -1,0 +1,166 @@
+version: '3.8'
+
+volumes:
+  prod_admin_postgresdata:
+  prod_respondent_postgresdata:
+  prod_minio_data:
+  prod_clickhouse_data:
+
+services:
+  admin_postgres:
+    container_name: admin_postgres
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${ADMIN_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ADMIN_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${ADMIN_POSTGRES_DB}
+    volumes:
+      - prod_admin_postgresdata:/var/lib/postgresql/data
+    command: -p ${ADMIN_POSTGRES_PORT}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${ADMIN_POSTGRES_USER} -p ${ADMIN_POSTGRES_PORT}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  respondent_postgres:
+    container_name: respondent_postgres
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${RESPONDENT_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${RESPONDENT_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${RESPONDENT_POSTGRES_DB}
+    volumes:
+      - prod_respondent_postgresdata:/var/lib/postgresql/data
+    command: -p ${RESPONDENT_POSTGRES_PORT}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${RESPONDENT_POSTGRES_USER} -p ${RESPONDENT_POSTGRES_PORT}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    container_name: minio
+    image: minio/minio
+    command: server /data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_PORT=${MINIO_PORT}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
+    volumes:
+      - prod_minio_data:/data
+    ports:
+      - '${MINIO_PORT}:${MINIO_PORT}'
+
+  clickhouse:
+    container_name: clickhouse
+    image: yandex/clickhouse-server:latest
+    volumes:
+      - prod_clickhouse_data:/var/lib/clickhouse
+    environment:
+      - CLICKHOUSE_DB=${CLICKHOUSE_DB}
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+
+  admin_backend:
+    container_name: admin_backend
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.admin-backend
+    environment:
+      - POSTGRES_USER=${ADMIN_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${ADMIN_POSTGRES_PASSWORD}
+      - POSTGRES_HOST=admin_postgres
+      - POSTGRES_DB=${ADMIN_POSTGRES_DB}
+      - POSTGRES_PORT=${ADMIN_POSTGRES_PORT}
+      - DATABASE_URL=postgresql://${ADMIN_POSTGRES_USER}:${ADMIN_POSTGRES_PASSWORD}@admin_postgres:${ADMIN_POSTGRES_PORT}/${ADMIN_POSTGRES_DB}
+      - APP_PORT=${ADMIN_APP_PORT}
+      - JWT_ACCESS_SECRET=${JWT_ACCESS_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_ACCESS_EXPIRE_TIME=${JWT_ACCESS_EXPIRE_TIME}
+      - JWT_REFRESH_EXPIRE_TIME=${JWT_REFRESH_EXPIRE_TIME}
+      - RESPONDENT_SERVICE_URL=${RESPONDENT_SERVICE_URL}
+      - RESPONDENT_BUNDLE_CDN_URL=${RESPONDENT_BUNDLE_CDN_URL}
+      - CLICKHOUSE_URL=${CLICKHOUSE_URL}
+      - CLICKHOUSE_DB=${CLICKHOUSE_DB}
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_PORT=${MINIO_PORT}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
+    depends_on:
+      admin_postgres:
+        condition: service_healthy
+  
+  respondent_backend:
+    container_name: respondent_backend
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.respondent-backend
+    environment:
+      - POSTGRES_USER=${RESPONDENT_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${RESPONDENT_POSTGRES_PASSWORD}
+      - POSTGRES_HOST=respondent_postgres
+      - POSTGRES_DB=${RESPONDENT_POSTGRES_DB}
+      - POSTGRES_PORT=${RESPONDENT_POSTGRES_PORT}
+      - DATABASE_URL=postgresql://${RESPONDENT_POSTGRES_USER}:${RESPONDENT_POSTGRES_PASSWORD}@respondent_postgres:${RESPONDENT_POSTGRES_PORT}/${RESPONDENT_POSTGRES_DB}
+      - APP_PORT=${RESPONDENT_APP_PORT}
+    depends_on:
+      respondent_postgres:
+        condition: service_healthy
+    ports:
+      - '${RESPONDENT_APP_PORT}:${RESPONDENT_APP_PORT}'
+
+  event_collector:
+    container_name: event_collector
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.event-collector
+    environment:
+      - APP_PORT=${COLLECTOR_APP_PORT}
+      - CLICKHOUSE_URL=${CLICKHOUSE_URL}
+      - CLICKHOUSE_DB=${CLICKHOUSE_DB}
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+    ports:
+      - '${COLLECTOR_APP_PORT}:${COLLECTOR_APP_PORT}'
+
+  admin_frontend:
+    container_name: admin_frontend
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.admin-frontend
+      args:
+        VITE_RESPONDENT_ENTRYPOINT_URL: ${VITE_RESPONDENT_ENTRYPOINT_URL}
+    environment:
+      - VITE_RESPONDENT_ENTRYPOINT_URL=${VITE_RESPONDENT_ENTRYPOINT_URL}
+    ports:
+      - '${ADMIN_FRONTEND_PORT}:${ADMIN_FRONTEND_PORT}'
+
+  respondent_frontend:
+    container_name: respondent_frontend
+    environment:
+      - VERSION=${VERSION}
+      - BUNDLE_BUCKET=${BUNDLE_BUCKET}
+      - MINIO_PORT=${MINIO_PORT}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
+      - MINIO_USE_SSL=${MINIO_USE_SSL}
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - VITE_STATISTIC_SERVICE_URL=${VITE_STATISTIC_SERVICE_URL}
+    build:
+      context: .
+      dockerfile: Dockerfile.respondent-frontend
+      args:
+        VITE_STATISTIC_SERVICE_URL: ${VITE_STATISTIC_SERVICE_URL}
+    depends_on:
+      - minio

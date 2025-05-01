@@ -1,5 +1,7 @@
 FROM node:20-alpine as base
-RUN corepack enable
+RUN npm install -g pnpm@8.8.0 prisma typescript
+ARG VITE_RESPONDENT_ENTRYPOINT_URL
+ENV VITE_RESPONDENT_ENTRYPOINT_URL=${VITE_RESPONDENT_ENTRYPOINT_URL}
 
 FROM base AS build
 COPY . /usr/src/app
@@ -8,8 +10,8 @@ RUN pnpm install --frozen-lockfile &&\
   pnpm --filter admin-frontend build
 
 FROM nginx AS frontend
-COPY --from=build /usr/src/app/packages/frontend/dist /usr/share/nginx/html 
+COPY --from=build /usr/src/app/packages/admin-frontend/dist /usr/share/nginx/html 
 RUN rm /etc/nginx/conf.d/default.conf
-COPY --from=build /usr/src/app/packages/frontend/nginx.conf /etc/nginx/conf.d/
+COPY --from=build /usr/src/app/packages/admin-frontend/nginx.conf /etc/nginx/conf.d/
 CMD ["nginx", "-g", "daemon off;"]
-EXPOSE 80
+EXPOSE ${APP_PORT}
