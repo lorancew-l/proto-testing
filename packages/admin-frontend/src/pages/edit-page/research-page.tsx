@@ -9,7 +9,7 @@ import { makeStyles } from 'tss-react/mui';
 
 import { useUpdateResearchRequest } from '../../api';
 
-import { Question } from './questions/question';
+import { Question } from './questions';
 import { useEditPageStore } from './store';
 
 const useStyles = makeStyles()((theme) => ({

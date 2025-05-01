@@ -45,7 +45,7 @@ pnpm --filter 'admin-backend' db:view
 ## Загрузка бандла респондентской части
 
 ```sh
-docker build -f Dockerfile.respondent-frontend -t respondent-frontend .
+docker build -f Dockerfile.respondent-frontend --build-arg VITE_STATISTIC_SERVICE_URL=http://localhost:5000 -t respondent-frontend .
 docker run --network="host" --env-file ./packages/respondent-frontend/.env respondent-frontend
 ```
 

@@ -3,12 +3,13 @@ import { memo, useEffect, useRef, useState } from 'react';
 import { isEqual, isObject } from 'lodash';
 
 import ArrowRightAltIcon from '@mui/icons-material/ArrowRightAlt';
+import ClearIcon from '@mui/icons-material/Clear';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import FlagIcon from '@mui/icons-material/Flag';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
-import { Paper, Tooltip, alpha } from '@mui/material';
+import { IconButton, Paper, Tooltip, alpha } from '@mui/material';
 
 import { Handle, NodeProps, Position } from '@xyflow/react';
 import { PrototypeScreen as PrototypeScreenType } from 'shared';
@@ -23,7 +24,7 @@ import { ScreenArea } from './screen-area';
 import { ScreenDescription } from './screen-description';
 import { useDrawArea } from './use-draw-area';
 
-const useStyles = makeStyles<void, 'actionsContainer' | 'hidden'>()((theme, _, classes) => ({
+const useStyles = makeStyles<void, 'actionsContainer' | 'hidden' | 'clearImageButton'>()((theme, _, classes) => ({
   root: {
     maxWidth: 400,
     cursor: 'default',
@@ -31,6 +32,9 @@ const useStyles = makeStyles<void, 'actionsContainer' | 'hidden'>()((theme, _, c
     flexDirection: 'column',
     gap: theme.spacing(1),
     [`&:hover .${classes.actionsContainer}, &:focus-within .${classes.actionsContainer}`]: {
+      visibility: 'visible',
+    },
+    [` &:hover .${classes.clearImageButton}, &:focus-within .${classes.clearImageButton}`]: {
       visibility: 'visible',
     },
     [`&:hover .${classes.hidden}, &:focus-within .${classes.hidden}`]: {
@@ -99,8 +103,11 @@ const useStyles = makeStyles<void, 'actionsContainer' | 'hidden'>()((theme, _, c
     position: 'relative',
     padding: theme.spacing(1),
     color: theme.palette.action.active,
-    '&:hover': {
+    '&:not(:disabled):hover': {
       backgroundColor: theme.palette.grey[100],
+    },
+    '&:disabled': {
+      opacity: 0.5,
     },
   },
   selected: {
@@ -135,6 +142,16 @@ const useStyles = makeStyles<void, 'actionsContainer' | 'hidden'>()((theme, _, c
   targetActiveIcon: {
     color: theme.palette.success.light,
   },
+  clearImageButton: {
+    width: 24,
+    height: 24,
+    padding: 0,
+    position: 'absolute',
+    top: theme.spacing(1),
+    right: theme.spacing(1),
+    zIndex: theme.zIndex.modal,
+    visibility: 'hidden',
+  },
 }));
 export const PrototypeScreen = memo(({ id, data }: NodeProps & Omit<PrototypeScreenType, 'position'>) => {
   const { classes, cx } = useStyles();
@@ -142,7 +159,7 @@ export const PrototypeScreen = memo(({ id, data }: NodeProps & Omit<PrototypeScr
   const {
     form: { setFieldValue, getFieldValue },
   } = useEditPageActions();
-  const { path, edgeDisplayMode, setEdgeDisplayMode, toggleScreenStartMark, toggleScreenTargetMark } =
+  const { path, edgeDisplayMode, setEdgeDisplayMode, toggleScreenStartMark, toggleScreenTargetMark, canDeleteScreen } =
     usePrototypeScreenContext();
   const { value: imageSrc, onChange: onImageSrcChange } = useScreenController(id, 'data.imageSrc');
   const { value: areas = [], onChange: setAreas } = useScreenController(id, 'data.areas');
@@ -244,7 +261,7 @@ export const PrototypeScreen = memo(({ id, data }: NodeProps & Omit<PrototypeScr
           <DragIndicatorIcon style={{ cursor: 'grab' }} />
         </ScreenActionButton>
 
-        <ScreenActionButton tooltip="Удалить экран" onClick={handleRemoveScreen}>
+        <ScreenActionButton tooltip="Удалить экран" onClick={handleRemoveScreen} disabled={!canDeleteScreen}>
           <DeleteIcon />
         </ScreenActionButton>
       </div>
@@ -258,25 +275,32 @@ export const PrototypeScreen = memo(({ id, data }: NodeProps & Omit<PrototypeScr
 
         <div className={classes.imageContainer}>
           <div className={classes.workarea}>
-            {!imageSrc ? (
-              <ImageUploader onImageUpload={onImageSrcChange} />
+            {imageSrc ? (
+              <>
+                <img className={classes.image} src={imageSrc} draggable={false} ref={imageRef} />
+
+                <IconButton className={classes.clearImageButton} size="small" onClick={() => onImageSrcChange('')}>
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              </>
             ) : (
-              <img className={classes.image} src={imageSrc} draggable={false} ref={imageRef} />
+              <ImageUploader onImageUpload={onImageSrcChange} />
             )}
 
             {areaGhost && <div className={classes.areaGhost} style={getRelativeRectStyle(areaGhost)} />}
 
-            {areas.map((area, index) => (
-              <ScreenArea
-                selected={area.id === selectedArea}
-                key={area.id}
-                id={area.id}
-                screenId={id}
-                path={`data.areas.${index}`}
-                imageRef={imageRef}
-                onSelect={setSelectedArea}
-              />
-            ))}
+            {!!imageSrc &&
+              areas.map((area, index) => (
+                <ScreenArea
+                  selected={area.id === selectedArea}
+                  key={area.id}
+                  id={area.id}
+                  screenId={id}
+                  path={`data.areas.${index}`}
+                  imageRef={imageRef}
+                  onSelect={setSelectedArea}
+                />
+              ))}
           </div>
 
           <Handle type="target" id="left" position={Position.Left} />
@@ -293,11 +317,13 @@ const ScreenActionButton = ({
   children,
   tooltip,
   selected,
+  disabled,
   className,
   onClick,
 }: {
   children: React.ReactNode;
   selected?: boolean;
+  disabled?: boolean;
   tooltip?: string;
   className?: string;
   onClick?: VoidFunction;
@@ -306,7 +332,11 @@ const ScreenActionButton = ({
 
   return (
     <Tooltip title={tooltip}>
-      <button className={cx(classes.headerButton, className, { [classes.selected]: selected })} onClick={onClick}>
+      <button
+        className={cx(classes.headerButton, className, { [classes.selected]: selected })}
+        onClick={onClick}
+        disabled={disabled}
+      >
         {children}
       </button>
     </Tooltip>

@@ -6,6 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import FlagIcon from '@mui/icons-material/Flag';
+import ImageNotSupportedIcon from '@mui/icons-material/ImageNotSupported';
 import PlayCircleFilledIcon from '@mui/icons-material/PlayCircleFilled';
 import { Dialog, Paper, Slide, Tooltip, alpha } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
@@ -32,7 +33,7 @@ import { useFieldController } from '../../store';
 import { GoToEdge } from './go-to-edge';
 import { PrototypeScreen } from './prototype-screen';
 import { PrototypeScreenContextProvider, usePrototypeScreenContext } from './prototype-screen-context';
-import { usePasteScreen } from './use-pase-screen';
+import { usePasteScreen } from './use-paste-screen';
 
 const useStyles = makeStyles()((theme) => ({
   root: {
@@ -99,6 +100,9 @@ const useStyles = makeStyles()((theme) => ({
     width: 96,
   },
   screenPreviewImage: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     border: '1px solid #d5d6da',
     borderRadius: theme.shape.borderRadius * 2,
     width: 96,
@@ -304,7 +308,13 @@ const ScreenPreviewCard = ({ screen, onClick }: { screen: PrototypeScreenType; o
     <div className={classes.screenPreview} role="button" onClick={() => onClick(screen.id)}>
       {marker && <div className={classes.screenPreviewMarker}>{marker}</div>}
 
-      <img className={classes.screenPreviewImage} src={screen.data.imageSrc} />
+      {screen.data.imageSrc ? (
+        <img className={classes.screenPreviewImage} src={screen.data.imageSrc} />
+      ) : (
+        <div className={classes.screenPreviewImage}>
+          <ImageNotSupportedIcon color="action" sx={{ width: 48, height: 48 }} />
+        </div>
+      )}
 
       <span className={classes.screenPreviewDescription}>
         <RichText text={screen.data.description} />

@@ -4,8 +4,7 @@ import { FieldPathValue, Path } from 'react-hook-form';
 import { get, isFunction } from 'lodash';
 
 import { Connection, Edge, OnNodesChange, applyNodeChanges, useReactFlow } from '@xyflow/react';
-import { nanoid } from 'nanoid';
-import { PrototypeScreen } from 'shared';
+import { PrototypeScreen, generatePrototypeScreen } from 'shared';
 
 import { Fields, useEditPageActions, useEditPageStore, useFieldController, useFieldWatch } from '../../store';
 
@@ -15,6 +14,7 @@ const PrototypeScreenContext = createContext<{
   path: `research.questions.${number}.screens`;
   index: number;
   edgeDisplayMode: EdgeDisplayMode;
+  canDeleteScreen: boolean;
   setEdgeDisplayMode: (mode: EdgeDisplayMode | ((prevMode: EdgeDisplayMode) => EdgeDisplayMode)) => void;
   addEdge: (params: { source: string; sourceHandle?: string | null; target: string }) => void;
   deleteEdge: (edge: { source: string; sourceHandle?: string | null }) => void;
@@ -38,14 +38,12 @@ export const PrototypeScreenContextProvider = ({ index, children }: { index: num
 
   const [edgeDisplayMode, setEdgeDisplayMode] = useState<EdgeDisplayMode>('visible');
 
+  const canDeleteScreen = useEditPageStore((state) => get(state, path, []).length > 1);
+
   const addScreen = useCallback((imageSrc: string = '') => {
     setFieldValue(path, [
       ...getFieldValue(path),
-      {
-        id: nanoid(10),
-        position: screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 }),
-        data: { imageSrc, description: '', areas: [], startScreen: false, targetScreen: false },
-      },
+      generatePrototypeScreen(screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 }), imageSrc),
     ]);
   }, []);
 
@@ -186,6 +184,7 @@ export const PrototypeScreenContextProvider = ({ index, children }: { index: num
         addEdge,
         deleteEdge,
         addScreen,
+        canDeleteScreen,
         edgeDisplayMode,
         setEdgeDisplayMode,
         toggleScreenStartMark,
@@ -211,6 +210,7 @@ export const PrototypeScreenContextProvider = ({ index, children }: { index: num
       setEdgeDisplayMode,
       toggleScreenStartMark,
       toggleScreenTargetMark,
+      canDeleteScreen,
     ],
   );
 

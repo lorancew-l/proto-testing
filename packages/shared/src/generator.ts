@@ -71,7 +71,7 @@ export const generateQuestion = <T extends Question['type']>(
       return {
         type,
         description: '',
-        screens: [],
+        screens: [generatePrototypeScreen({ x: 0, y: 0 })],
         ...baseQuestion,
         ...overrides,
       } satisfies PrototypeQuestion;
@@ -79,6 +79,14 @@ export const generateQuestion = <T extends Question['type']>(
       return baseQuestion as Question;
     }
   }
+};
+
+export const generatePrototypeScreen = (position: { x: number; y: number }, imageSrc: string = '') => {
+  return {
+    id: nanoid(10),
+    position: { x: position.x, y: position.y },
+    data: { imageSrc, description: '', areas: [], startScreen: false, targetScreen: false },
+  };
 };
 
 export const generateResearch = (): Research => {

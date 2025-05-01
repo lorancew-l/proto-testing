@@ -153,7 +153,9 @@ export const PrototypeQuestionStats = ({
   return (
     <>
       <QuestionStatsCard question={question} index={index}>
-        <Typography variant="h6" sx={{ marginBottom: 1, fontSize: 16 }}>
+        {question.description && <RichText text={question.description} />}
+
+        <Typography variant="h6" sx={{ marginBottom: 1, marginTop: 1.5, fontSize: 16 }}>
           Обобщенные результаты
         </Typography>
 

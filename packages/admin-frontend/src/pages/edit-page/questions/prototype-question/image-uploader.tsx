@@ -57,6 +57,8 @@ export const ImageUploader = ({ onImageUpload }: { onImageUpload: (src: string) 
     const handlePaste = async (event: ClipboardEvent) => {
       if (!mouseOverDropzone.current) return;
 
+      event.stopPropagation();
+
       const items = event.clipboardData?.items ?? [];
 
       for (const item of items) {
@@ -72,9 +74,9 @@ export const ImageUploader = ({ onImageUpload }: { onImageUpload: (src: string) 
       }
     };
 
-    document.addEventListener('paste', handlePaste);
+    document.addEventListener('paste', handlePaste, true);
     return () => {
-      document.removeEventListener('paste', handlePaste);
+      document.removeEventListener('paste', handlePaste, true);
     };
   }, []);
 
