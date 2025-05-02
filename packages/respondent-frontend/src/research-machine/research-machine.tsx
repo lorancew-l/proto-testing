@@ -13,6 +13,7 @@ import type {
   ResearchMachineEvents,
 } from './types';
 import {
+  assertAnswerStackRecordType,
   calculateNextScreen,
   createInitialContext,
   generatePrototypeScreenState,
@@ -82,21 +83,33 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
 
         const nextAnswerStackRecord: AnswerStackRecord = (() => {
           switch (answer.type) {
-            case 'single':
+            case 'single': {
+              assertAnswerStackRecordType(answerStackRecord, 'single');
               return {
                 ...answerStackRecord,
-                type: answer.type,
                 answers: [answer.answerId],
               };
+            }
+            case 'multiple': {
+              assertAnswerStackRecordType(answerStackRecord, 'multiple');
+              const hasAnswer = answerStackRecord.answers.some((a) => a === answer.answerId);
+
+              return {
+                ...answerStackRecord,
+                answers: hasAnswer
+                  ? answerStackRecord.answers.filter((a) => a !== answer.answerId)
+                  : [...answerStackRecord.answers, answer.answerId],
+              };
+            }
             case 'prototype':
-              const prevRecord = answerStackRecord as Extract<AnswerStackRecord, { type: 'prototype' }>;
+              assertAnswerStackRecordType(answerStackRecord, 'prototype');
 
               if ('givenUp' in answer) {
                 return {
-                  ...prevRecord,
+                  ...answerStackRecord,
                   givenUp: true,
                   endTs: Date.now(),
-                  answers: updatePrototypeLastScreenState(prevRecord.answers, (answer) => ({
+                  answers: updatePrototypeLastScreenState(answerStackRecord.answers, (answer) => ({
                     ...answer,
                     endTs: Date.now(),
                   })),
@@ -106,8 +119,8 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
               const { click } = answer;
               const { area } = click;
 
-              const lastScreenState = getPrototypeLastScreenState(prevRecord.answers);
-              if (!lastScreenState) return prevRecord;
+              const lastScreenState = getPrototypeLastScreenState(answerStackRecord.answers);
+              if (!lastScreenState) return answerStackRecord;
 
               const nextScreen =
                 area && question.type === 'prototype' ? question.screens.find((screen) => screen.id === area.goToScreenId) : null;
@@ -115,12 +128,12 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
               const completed = !!nextScreen?.data.targetScreen;
 
               return {
-                ...prevRecord,
+                ...answerStackRecord,
                 completed,
                 givenUp: false,
                 endTs: Date.now(),
                 answers: [
-                  ...updatePrototypeLastScreenState(prevRecord.answers, (answer) => ({
+                  ...updatePrototypeLastScreenState(answerStackRecord.answers, (answer) => ({
                     ...answer,
                     endTs: Date.now(),
                     clicks: [...answer.clicks, { x: click.x, y: click.y, areaId: area?.id ?? null, ts: Date.now() }],

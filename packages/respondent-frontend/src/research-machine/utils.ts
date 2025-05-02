@@ -145,3 +145,12 @@ export const updatePrototypeLastScreenState = (
 export const getPrototypeLastScreenState = (answers: PrototypeScreenState[]): PrototypeScreenState | undefined => {
   return answers[answers.length - 1];
 };
+
+export function assertAnswerStackRecordType<T extends AnswerStackRecord['type']>(
+  record: AnswerStackRecord,
+  type: T,
+): asserts record is Extract<AnswerStackRecord, { type: T }> {
+  if (record.type !== type) {
+    throw new Error(`Expected ${type}, but get ${record.type}`);
+  }
+}

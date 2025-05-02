@@ -98,7 +98,7 @@ export const Question = memo(({ question, index }: { question: ResearchQuestion;
   const Component = questionTypeToComponent[question.type] as React.ComponentType<{ question: ResearchQuestion; index: number }>;
 
   return (
-    <QuestionWrapper id={question.id} index={index} type={question.type}>
+    <QuestionWrapper key={question.type} id={question.id} index={index} type={question.type}>
       <Component question={question} index={index} />
     </QuestionWrapper>
   );

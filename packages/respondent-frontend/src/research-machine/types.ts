@@ -7,6 +7,7 @@ export type ResearchMachineEvents =
       type: 'selectAnswer';
       answer:
         | { type: SingleQuestion['type']; answerId: string }
+        | { type: MultipleQuestion['type']; answerId: string }
         | {
             type: PrototypeQuestion['type'];
             click: { x: number; y: number; area: PrototypeArea | null };

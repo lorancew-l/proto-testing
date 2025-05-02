@@ -179,8 +179,9 @@ export class ResearchStatisticsService {
 
         for (const answer of answers) {
           stats[answer] = (stats[answer] ?? 0) + 1;
-          stats.total += 1;
         }
+
+        stats.total += 1;
       }
 
       if (row.question_type === 'prototype') {

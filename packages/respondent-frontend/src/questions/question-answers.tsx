@@ -1,5 +1,6 @@
 import cn from 'classnames';
 
+import CheckMarkIcon from '../assets/check-mark.svg?react';
 import { useResearchMachineContext } from '../research-machine';
 
 import styles from './question-answers.module.css';
@@ -10,7 +11,7 @@ export const QuestionAnswers = ({
   answers,
   answeredIds,
 }: {
-  type: 'single';
+  type: 'single' | 'multiple';
   answers: { id: string; text: string }[];
   answeredIds: string[];
 }) => {
@@ -28,7 +29,10 @@ export const QuestionAnswers = ({
               send({ type: 'selectAnswer', answer: { type, answerId: answer.id } });
             }}
           >
-            <div className={styles.indicator}>{type === 'single' && <RadioIndicator active={selected} />}</div>
+            <div className={styles.indicator}>
+              {type === 'single' && <RadioIndicator active={selected} />}
+              {type === 'multiple' && <CheckboxIndicator active={selected} />}
+            </div>
 
             <RichText text={answer.text} />
           </li>
@@ -40,4 +44,12 @@ export const QuestionAnswers = ({
 
 const RadioIndicator = ({ active }: { active: boolean }) => {
   return <div className={cn(styles.radioIndicator, { [styles.active]: active })}></div>;
+};
+
+const CheckboxIndicator = ({ active }: { active: boolean }) => {
+  return (
+    <div className={cn(styles.checkboxIndicator, { [styles.active]: active })}>
+      <CheckMarkIcon />
+    </div>
+  );
 };
