@@ -7,8 +7,8 @@ import MenuItem from '@mui/material/MenuItem';
 import { Question } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
-import { questionTypeToIcon } from '../common';
-import { useEditPageActions } from '../store';
+import { questionTypeToIcon } from '../../common';
+import { useEditPageActions } from '../../store';
 
 const typeToTitle: Record<Question['type'], string> = {
   single: 'Одиночный выбор',

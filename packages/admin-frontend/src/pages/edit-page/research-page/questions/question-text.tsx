@@ -1,5 +1,5 @@
+import { useFieldController } from '../../store';
 import { InlineRichEditor } from '../inline-rich-editor';
-import { useFieldController } from '../store';
 
 export const QuestionText = ({ path }: { path: `research.questions.${number}.text` }) => {
   const { value, onChange, ref } = useFieldController(path);

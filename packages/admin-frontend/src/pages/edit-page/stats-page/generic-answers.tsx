@@ -1,6 +1,7 @@
 import { makeStyles } from 'tss-react/mui';
 
-import { RichText } from './rich-text';
+import { RichText } from '../rich-text';
+
 import { GenericQuestionStats } from './types';
 
 const useStyles = makeStyles()((theme) => ({

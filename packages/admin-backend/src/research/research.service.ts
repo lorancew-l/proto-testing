@@ -81,7 +81,11 @@ export class ResearchService {
     try {
       const updatedResearch = await this.databaseService.research.update({
         where: { id },
-        data: { data: updateResearchDTO.data as unknown as Prisma.JsonObject, updatedAt: new Date() },
+        data: {
+          name: updateResearchDTO.name,
+          data: updateResearchDTO.data as unknown as Prisma.JsonObject,
+          updatedAt: new Date(),
+        },
       });
       return updatedResearch;
     } catch {

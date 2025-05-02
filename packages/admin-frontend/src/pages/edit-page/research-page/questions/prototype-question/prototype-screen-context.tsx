@@ -6,7 +6,7 @@ import { get, isFunction } from 'lodash';
 import { Connection, Edge, OnNodesChange, applyNodeChanges, useReactFlow } from '@xyflow/react';
 import { PrototypeScreen, generatePrototypeScreen } from 'shared';
 
-import { Fields, useEditPageActions, useEditPageStore, useFieldController, useFieldWatch } from '../../store';
+import { Fields, useEditPageActions, useEditPageStore, useFieldController, useFieldWatch } from '../../../store';
 
 export type EdgeDisplayMode = 'hidden' | 'visible' | { screenId: string; mode: 'all' | 'in' | 'out' };
 

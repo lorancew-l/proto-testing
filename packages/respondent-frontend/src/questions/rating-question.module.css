@@ -36,10 +36,37 @@
   cursor: pointer;
 }
 
+.ratingStar {
+  border: none;
+}
+
 .rating.active {
   border-color: var(--accent);
 }
 
 .rating:not(.active):hover {
   border-color: var(--border-hover);
+}
+
+.star {
+  fill: var(--border);
+}
+
+.star:hover {
+  fill: var(--border-hover);
+}
+
+.active .star,
+.active .star:hover {
+  fill: var(--accent);
+}
+
+@media (max-width: 599px) {
+  .rating {
+    flex-basis: 20%;
+  }
+
+  .ratingContainer {
+    flex-wrap: wrap;
+  }
 }

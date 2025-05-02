@@ -5,7 +5,7 @@ import { Tooltip, Typography } from '@mui/material';
 import type { PrototypeScreen } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
-import { RichText } from '../rich-text';
+import { RichText } from '../../rich-text';
 
 const useStyles = makeStyles()((theme) => ({
   screen: {

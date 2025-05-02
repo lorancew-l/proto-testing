@@ -1,10 +1,12 @@
 import { range } from 'lodash';
 
+import StarBorderIcon from '@mui/icons-material/StarBorder';
+
 import { RatingQuestion as RatingQuestionType } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
+import { useFieldController } from '../../store';
 import { InlineRichEditor } from '../inline-rich-editor';
-import { useFieldController } from '../store';
 
 const useStyles = makeStyles()((theme) => ({
   container: {
@@ -23,13 +25,16 @@ const useStyles = makeStyles()((theme) => ({
       maxWidth: `calc((100% - ${theme.spacing(2)}) / 2)`,
     },
   },
+  label: {
+    color: theme.palette.action.active,
+  },
   ratingContainer: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: theme.spacing(0.5),
   },
-  rating: {
+  ratingDigit: {
     padding: theme.spacing(1.5),
     border: `1px solid #d5d6da`,
     width: 40,
@@ -39,6 +44,10 @@ const useStyles = makeStyles()((theme) => ({
     justifyContent: 'center',
     backgroundColor: theme.palette.common.white,
     borderRadius: theme.shape.borderRadius,
+  },
+  ratingStar: {
+    width: 40,
+    height: 40,
   },
 }));
 
@@ -56,9 +65,15 @@ export const RatingQuestion = ({ question, index }: { question: RatingQuestionTy
 
       <div className={classes.ratingContainer}>
         {ratingRange.map((rating) => (
-          <div key={rating} className={classes.rating}>
-            {rating}
-          </div>
+          <>
+            {question.preset === 'digits' && (
+              <div key={rating} className={classes.ratingDigit}>
+                {rating}
+              </div>
+            )}
+
+            {question.preset === 'stars' && <StarBorderIcon className={classes.ratingStar} key={rating} color="action" />}
+          </>
         ))}
       </div>
     </div>
@@ -72,6 +87,7 @@ const ScaleLabel = ({
   path: `research.questions.${number}.minLabel` | `research.questions.${number}.maxLabel`;
   placeholder: string;
 }) => {
+  const { classes } = useStyles();
   const { value = '', onChange } = useFieldController(path);
-  return <InlineRichEditor value={value} onChange={onChange} placeholder={placeholder} />;
+  return <InlineRichEditor className={classes.label} value={value} onChange={onChange} placeholder={placeholder} />;
 };

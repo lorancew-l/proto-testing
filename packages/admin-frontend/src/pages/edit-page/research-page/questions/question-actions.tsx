@@ -3,7 +3,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 import { makeStyles } from 'tss-react/mui';
 
-import { useEditPageActions, useEditPageStore } from '../store';
+import { useEditPageActions, useEditPageStore } from '../../store';
 
 const useStyles = makeStyles()((theme) => ({
   container: {

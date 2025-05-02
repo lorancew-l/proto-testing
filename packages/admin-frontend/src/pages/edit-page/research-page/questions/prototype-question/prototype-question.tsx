@@ -26,9 +26,9 @@ import '@xyflow/react/dist/style.css';
 import type { PrototypeQuestion as PrototypeQuestionType, PrototypeScreen as PrototypeScreenType } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
+import { RichText } from '../../../rich-text';
+import { useFieldController } from '../../../store';
 import { InlineRichEditor } from '../../inline-rich-editor';
-import { RichText } from '../../stats-page/rich-text';
-import { useFieldController } from '../../store';
 
 import { GoToEdge } from './go-to-edge';
 import { PrototypeScreen } from './prototype-screen';

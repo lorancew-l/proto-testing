@@ -1,11 +1,12 @@
-import { memo } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import { alpha } from '@mui/material';
 
 import { Question as ResearchQuestion } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
-import { useEditPageActions } from '../store';
+import { useEditPageActions, useIsActiveQuestion } from '../../store';
 
 import { MultipleQuestion } from './multiple-question';
 import { PrototypeQuestion } from './prototype-question';
@@ -25,12 +26,16 @@ const useStyles = makeStyles<void, 'actionsContainer' | 'addQuestionButton'>()((
     backgroundColor: theme.palette.common.white,
     borderRadius: theme.shape.borderRadius * 4,
     border: `1px solid #d5d6da`,
+    scrollMargin: theme.spacing(2),
     [`&:hover .${classes.actionsContainer}`]: {
       visibility: 'visible',
     },
     [`&:focus-within .${classes.actionsContainer}`]: {
       visibility: 'visible',
     },
+  },
+  activeQuestion: {
+    outline: `2px solid ${theme.palette.primary.main}`,
   },
   actionsContainer: {
     marginLeft: theme.spacing(2),
@@ -62,8 +67,25 @@ const useStyles = makeStyles<void, 'actionsContainer' | 'addQuestionButton'>()((
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    [`:hover .${classes.addQuestionButton}`]: {
+    position: 'relative',
+    [`&:hover .${classes.addQuestionButton}, &:hover:before, &:hover:after`]: {
       visibility: 'visible',
+    },
+    ['&:before, &:after']: {
+      content: '""',
+      position: 'absolute',
+      visibility: 'hidden',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      backgroundColor: alpha(theme.palette.action.active, 0.2),
+      width: `calc(50% - 12px - calc(${theme.spacing(1)}))`,
+      height: 1,
+    },
+    '&:before': {
+      left: theme.spacing(1),
+    },
+    '&:after': {
+      right: theme.spacing(1),
     },
   },
   addQuestionButton: {
@@ -117,12 +139,41 @@ const QuestionWrapper = ({
   index: number;
   children: React.ReactNode;
 }) => {
-  const { classes } = useStyles();
-  const { insertQuestion } = useEditPageActions();
+  const { classes, cx } = useStyles();
+  const {
+    insertQuestion,
+    setActiveEntity,
+    form: { registerField, unregisterField },
+  } = useEditPageActions();
+  const isActive = useIsActiveQuestion(id);
+
+  const questionPath = `research.questions.${index}` as const;
+
+  const ref = useRef<HTMLLIElement | null>(null);
+
+  const setQuestionActive = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+    setActiveEntity({ type: 'question', questionId: id });
+  };
+
+  useEffect(() => {
+    if (ref.current) {
+      registerField(
+        questionPath,
+        {
+          focus: () => ref.current?.focus(),
+          scrollIntoView: () => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+        },
+        id,
+      );
+    }
+
+    return () => unregisterField(questionPath);
+  }, [questionPath, id]);
 
   return (
     <>
-      <li className={classes.questionWrapper}>
+      <li ref={ref} className={cx(classes.questionWrapper, { [classes.activeQuestion]: isActive })} onClick={setQuestionActive}>
         <div className={classes.header}>
           <div className={classes.headerItemWrapper}>
             <QuestionTypeSelect id={id} type={type} />
@@ -133,7 +184,7 @@ const QuestionWrapper = ({
           </div>
 
           <div className={classes.questionText}>
-            <QuestionText path={`research.questions.${index}.text`} />
+            <QuestionText path={`${questionPath}.text`} />
           </div>
 
           <div className={classes.headerItemWrapper}>

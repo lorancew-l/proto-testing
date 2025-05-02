@@ -8,8 +8,8 @@ import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { makeStyles } from 'tss-react/mui';
 
+import { useEditPageActions, useFieldController } from '../../store';
 import { InlineRichEditor } from '../inline-rich-editor';
-import { useEditPageActions, useFieldController } from '../store';
 
 const useStyles = makeStyles<void, 'deleteButton'>()((theme, _, classes) => ({
   list: {
@@ -118,7 +118,7 @@ const QuestionAnswer = ({
   const { classes, cx } = useStyles();
 
   // @ts-ignore
-  const { ref, handleRef } = useSortable({ id, index, modifiers: [RestrictToVerticalAxis] });
+  const { ref, handleRef } = useSortable({ id, index, modifiers: [RestrictToVerticalAxis], type: 'answer' });
 
   return (
     <li className={classes.answer} ref={ref}>

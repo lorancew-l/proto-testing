@@ -80,7 +80,7 @@ export const InlineRichEditor = ({
     ref,
     () => ({
       focus: () => editor?.commands.focus(),
-      scrollIntoView: () => inputRef.current?.scrollIntoView({ behavior: 'smooth' }),
+      scrollIntoView: () => inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
     }),
     [editor],
   );

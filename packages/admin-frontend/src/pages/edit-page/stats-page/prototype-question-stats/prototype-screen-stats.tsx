@@ -11,7 +11,7 @@ import { TransitionProps } from '@mui/material/transitions';
 import type { PrototypeScreen } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
-import { RichText } from '../rich-text';
+import { RichText } from '../../rich-text';
 import { PrototypeQuestionClickStats, PrototypeQuestionStats } from '../types';
 import { formatTimeMinAndSec } from '../utils';
 

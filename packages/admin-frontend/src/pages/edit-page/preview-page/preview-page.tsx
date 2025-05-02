@@ -38,7 +38,7 @@ export const PreviewPage = () => {
         <body>
           <div id="research-root"></div>
           <script>
-            // window.DEV_MODE = true;
+            window.DEV_MODE = true;
             window.research=${JSON.stringify({ ...getResearch(), id: getResearchMetadata().id, revision: getResearchMetadata().publishedRevision ?? 1 })}
           </script>
           <script src="${import.meta.env.VITE_RESPONDENT_ENTRYPOINT_URL}"></script>

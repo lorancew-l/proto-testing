@@ -79,11 +79,12 @@ export const PublishPage = () => {
     try {
       setIsLoading(true);
       const researchData = getResearch();
+      const researchMetadata = getResearchMetadata();
       const researchId = getResearchMetadata().id;
-      await updateResearch(researchId, researchData);
+      await updateResearch(researchId, researchMetadata.name, researchData);
       const publishedResearch = await publishResearch(researchId, { increaseRevision, pauseResearch });
       if (publishedResearch) {
-        setResearch(publishedResearch.data, pick(publishedResearch, ['id', 'publishedUrl', 'publishedRevision']));
+        setResearch(publishedResearch.data, pick(publishedResearch, ['id', 'name', 'publishedUrl', 'publishedRevision']));
       }
     } finally {
       setIsLoading(false);

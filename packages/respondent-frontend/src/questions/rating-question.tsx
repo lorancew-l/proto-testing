@@ -1,5 +1,7 @@
 import cn from 'classnames';
 
+import StarFilledIcon from '../assets/star-filled.svg?react';
+import StarIcon from '../assets/star.svg?react';
 import { useResearchMachineContext } from '../research-machine';
 
 import { Controls } from './controls';
@@ -23,16 +25,24 @@ export const RatingQuestion = ({ question, state }: QuestionProps<'rating'>) => 
       </div>
 
       <ol className={styles.ratingContainer}>
-        {ratingRange.map((rating) => (
-          <li
-            key={rating}
-            role="button"
-            className={cn(styles.rating, { [styles.active]: state.answers.includes(String(rating)) })}
-            onClick={() => send({ type: 'selectAnswer', answer: { type: 'rating', answerId: String(rating) } })}
-          >
-            {rating}
-          </li>
-        ))}
+        {ratingRange.map((rating) => {
+          const active = state.answers.includes(String(rating));
+          return (
+            <li
+              key={rating}
+              role="button"
+              className={cn(styles.rating, {
+                [styles.ratingStar]: question.preset === 'stars',
+                [styles.active]: active,
+              })}
+              onClick={() => send({ type: 'selectAnswer', answer: { type: 'rating', answerId: String(rating) } })}
+            >
+              {question.preset === 'digits' && rating}
+              {question.preset === 'stars' &&
+                (active ? <StarFilledIcon className={styles.star} /> : <StarIcon className={styles.star} />)}
+            </li>
+          );
+        })}
       </ol>
 
       <Controls />

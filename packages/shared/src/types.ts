@@ -23,6 +23,7 @@ export interface MultipleQuestion extends BaseQuestion {
 
 export interface RatingQuestion extends BaseQuestion {
   type: 'rating';
+  preset: 'stars' | 'digits';
   min: number;
   max: number;
   minLabel: string;

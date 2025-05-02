@@ -15,5 +15,11 @@ export type SignInUser = Omit<User, 'firstName' | 'lastName'> & { password: stri
 
 export type TokenResponse = { access_token: string; refresh_token: string };
 
-export type SavedResearch = { id: string; data: ResearchData; publishedUrl: string | null; publishedRevision: number | null };
+export type SavedResearch = {
+  id: string;
+  name: string;
+  data: ResearchData;
+  publishedUrl: string | null;
+  publishedRevision: number | null;
+};
 export type PublishedResearch = { id: string; data: ResearchData; revision: number };

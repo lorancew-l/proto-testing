@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useUploadFileRequest } from '../../../../api';
+import { useUploadFileRequest } from '../../../../../api';
 
 export const usePasteScreen = (onImageUpload: (imageSrc: string) => void) => {
   const { uploadFile } = useUploadFileRequest();

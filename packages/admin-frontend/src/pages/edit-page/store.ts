@@ -12,9 +12,12 @@ import { immer } from 'zustand/middleware/immer';
 
 export type Section = 'research' | 'preview' | 'publish' | 'stats';
 
-export type ResearchMetadata = { id: string; publishedUrl: string | null; publishedRevision: number | null };
+export type ResearchMetadata = { id: string; name: string; publishedUrl: string | null; publishedRevision: number | null };
+
+export type ResearchActiveEntity = { type: 'research' } | { type: 'question'; questionId: string };
 interface EditPageStoreState {
   section: Section;
+  activeEntity: ResearchActiveEntity;
   research: Research;
   researchMetadata: ResearchMetadata;
   form: {
@@ -25,13 +28,21 @@ interface EditPageStoreState {
   };
 }
 
-export type Fields = Pick<EditPageStore, 'research'>;
+export type Fields = Pick<EditPageStore, 'research' | 'researchMetadata'>;
+export type FieldPath = Path<Fields>;
+
+export type FieldsWithType<T, P extends FieldPath = FieldPath> = P extends unknown
+  ? FieldPathValue<Fields, P> extends T
+    ? P
+    : never
+  : never;
 
 interface EditPageStoreActions {
   setResearch: (research: Research, metadata?: ResearchMetadata) => void;
   getResearch: () => Research;
   getResearchMetadata: () => ResearchMetadata;
   setSection: (section: Section) => void;
+  setActiveEntity: (entity: ResearchActiveEntity) => void;
   removeQuestion: (id: string) => void;
   duplicateQuestion: (id: string) => void;
   changeQuestionType: (id: string, type: Question['type']) => void;
@@ -40,6 +51,7 @@ interface EditPageStoreActions {
   appendAnswer: (questionId: string) => void;
   removeAnswer: (questionId: string, answerId: string) => void;
   moveAnswer: (questionId: string, event: Parameters<typeof move>[1]) => void;
+  moveQuestion: (event: Parameters<typeof move>[1]) => void;
   form: {
     getFieldValue: <T extends Path<Fields>>(field: T) => FieldPathValue<Fields, T>;
     setFieldValue: <T extends Path<Fields>>(field: T, value: FieldPathValue<Fields, T>) => void;
@@ -50,7 +62,7 @@ interface EditPageStoreActions {
       answerId?: string,
     ) => void;
     unregisterField: (path: Path<Fields>) => void;
-    focus: (path: Path<Fields>) => void;
+    focus: (path: Path<Fields>, scrollIntoView?: boolean) => void;
   };
 }
 
@@ -62,8 +74,10 @@ const getStoreDefaultValue = (): Omit<EditPageStore, 'actions'> => ({
   research: {
     questions: [],
   },
+  activeEntity: { type: 'research' },
   researchMetadata: {
     id: '',
+    name: '',
     publishedRevision: null,
     publishedUrl: null,
   },
@@ -118,7 +132,7 @@ export const useEditPageStore = create<EditPageStore>()(
                   },
                 };
               }),
-            focus: (path) =>
+            focus: (path, scrollIntoView) =>
               set((state) => {
                 const registeredFields = state.form.registeredFields;
                 const handle = registeredFields[path];
@@ -135,12 +149,21 @@ export const useEditPageStore = create<EditPageStore>()(
                   (!handle.answerId || handle.answerId === currentAnswerId)
                 ) {
                   handle.focus();
+                  if (scrollIntoView) handle.scrollIntoView();
                 } else {
                   state.form.scheduledFocusPath = path;
                 }
               }),
           },
           setSection: (section) => set({ section }),
+          setActiveEntity: (activeEntity) => {
+            set({ activeEntity });
+
+            if (activeEntity.type === 'question') {
+              const questionIndex = get().research.questions.findIndex((q) => q.id === activeEntity.questionId);
+              get().actions.form.focus(`research.questions.${questionIndex}`, true);
+            }
+          },
           removeQuestion: (id) =>
             set((state) => {
               state.research.questions = state.research.questions.filter((q) => q.id !== id);
@@ -225,6 +248,10 @@ export const useEditPageStore = create<EditPageStore>()(
                 question.answers = move(question.answers, event);
               }
             }),
+          moveQuestion: (event) =>
+            set((state) => {
+              state.research.questions = move(state.research.questions, event);
+            }),
         },
       })),
     ),
@@ -287,11 +314,15 @@ export const useFieldWatch = <T extends Path<Fields>>(path: T) => {
 };
 
 function getQuestionIdPathFromPath(path: string): `research.questions.${number}.id` | null {
-  const [, match] = path.match(/(research\.data\.questions\.\d+).?/) ?? [];
+  const [, match] = path.match(/(research\.questions\.\d+).?/) ?? [];
   return match ? (`${match}.id` as `research.questions.${number}.id`) : null;
 }
 
 function getAnswerIdPathFromPath(path: string): `research.questions.${number}.answers.${number}.id` | null {
-  const [, match] = path.match(/(research\.data\.questions\.\d+\.answers\.\d+).?/) ?? [];
+  const [, match] = path.match(/(research\.questions\.\d+\.answers\.\d+).?/) ?? [];
   return match ? (`${match}.id` as `research.questions.${number}.answers.${number}.id`) : null;
+}
+
+export function useIsActiveQuestion(questionId: string) {
+  return useEditPageStore((store) => store.activeEntity.type === 'question' && store.activeEntity.questionId === questionId);
 }

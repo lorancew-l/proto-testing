@@ -5,7 +5,7 @@ import { CircularProgress, Typography } from '@mui/material';
 
 import { makeStyles } from 'tss-react/mui';
 
-import { useUploadFileRequest } from '../../../../api';
+import { useUploadFileRequest } from '../../../../../api';
 
 const useStyles = makeStyles()((theme) => ({
   container: {

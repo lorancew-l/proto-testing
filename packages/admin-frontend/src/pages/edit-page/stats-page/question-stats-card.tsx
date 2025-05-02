@@ -2,8 +2,7 @@ import type { Question } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
 import { questionTypeToIcon } from '../common';
-
-import { RichText } from './rich-text';
+import { RichText } from '../rich-text';
 
 const useStyles = makeStyles()((theme) => ({
   header: {

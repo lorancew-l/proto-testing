@@ -12,8 +12,8 @@ import { ru } from 'date-fns/locale';
 import type { PrototypeQuestion, PrototypeScreen } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
+import { RichText } from '../../rich-text';
 import { QuestionStatsCard } from '../question-stats-card';
-import { RichText } from '../rich-text';
 import type { PrototypeQuestionSessionStats, PrototypeQuestionStats as PrototypeQuestionStatsType } from '../types';
 import { formatTimeMinAndSec } from '../utils';
 

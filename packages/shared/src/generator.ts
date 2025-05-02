@@ -66,6 +66,7 @@ export const generateQuestion = <T extends Question['type']>(
         max: 5,
         minLabel: '',
         maxLabel: '',
+        preset: 'stars',
         ...baseQuestion,
         ...overrides,
       } satisfies RatingQuestion;
