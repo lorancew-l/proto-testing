@@ -10,11 +10,12 @@
   position: relative;
 
   --accent: #1976d2;
+  --caption: #35261c4d;
 
   --border: #d5d6da;
   --border-hover: #b0b1b5;
 
-  --spacing-xxs: 4px;
+  --spacing-xxxs: 4px;
   --spacing-xxs: 8px;
   --spacing-xs: 12px;
   --spacing-s: 16px;

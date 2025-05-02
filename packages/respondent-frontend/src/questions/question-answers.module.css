@@ -1,7 +1,7 @@
 .answerList {
   list-style: none;
   padding-inline-start: 0;
-  margin-bottom: var(--spacing-m);
+  margin: var(--spacing-m) 0;
 }
 
 .answer {

@@ -25,6 +25,8 @@ export interface RatingQuestion extends BaseQuestion {
   type: 'rating';
   min: number;
   max: number;
+  minLabel: string;
+  maxLabel: string;
 }
 
 export interface PrototypeArea {

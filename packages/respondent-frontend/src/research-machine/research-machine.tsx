@@ -101,6 +101,13 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
                   : [...answerStackRecord.answers, answer.answerId],
               };
             }
+            case 'rating': {
+              assertAnswerStackRecordType(answerStackRecord, 'rating');
+              return {
+                ...answerStackRecord,
+                answers: [answer.answerId],
+              };
+            }
             case 'prototype':
               assertAnswerStackRecordType(answerStackRecord, 'prototype');
 
@@ -142,9 +149,10 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
                 ],
               };
             default:
-              // @ts-ignore
-              const unknownType: never = answer.type;
-              throw new Error(`Unknown answer type ${unknownType}`);
+              const unknownAnswer: never = answer;
+              throw new Error(
+                `Unknown answer type ${typeof answer === 'object' ? JSON.stringify(unknownAnswer) : typeof answer}`,
+              );
           }
         })();
 

@@ -1,3 +1,5 @@
 .text {
   margin-bottom: var(--spacing-m);
+  font-size: 17px;
+  font-weight: 500;
 }
