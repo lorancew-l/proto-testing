@@ -36,13 +36,18 @@ export const QuestionActions = ({ id, className }: { id: string; className: stri
   const { duplicateQuestion, removeQuestion } = useEditPageActions();
   const canDelete = useEditPageStore((store) => store.research.questions.length > 1);
 
+  const handleRemoveQuestion = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+    removeQuestion(id);
+  };
+
   return (
     <div className={cx(className, classes.container)}>
       <button className={classes.button} onClick={() => duplicateQuestion(id)}>
         <ContentCopyIcon color="action" fontSize="small" />
       </button>
 
-      <button className={classes.button} onClick={() => removeQuestion(id)} disabled={!canDelete}>
+      <button className={classes.button} onClick={handleRemoveQuestion} disabled={!canDelete}>
         <DeleteIcon color="action" fontSize="medium" />
       </button>
     </div>

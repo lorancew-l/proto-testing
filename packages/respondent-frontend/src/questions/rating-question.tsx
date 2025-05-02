@@ -10,14 +10,17 @@ import { QuestionWrapper } from './question-wrapper';
 import styles from './rating-question.module.css';
 import { RichText } from './rich-text';
 import { QuestionProps } from './types';
+import { ValidationError } from './validation-error';
 
-export const RatingQuestion = ({ question, state }: QuestionProps<'rating'>) => {
+export const RatingQuestion = ({ question, state, error }: QuestionProps<'rating'>) => {
   const ratingRange = range(question.min, question.max);
   const { send } = useResearchMachineContext();
 
   return (
     <QuestionWrapper>
       <QuestionText text={question.text} />
+
+      {error && <ValidationError error={error} />}
 
       <div className={styles.labels}>
         <ScaleLabel value={question.min} text={question.minLabel} />
@@ -45,7 +48,7 @@ export const RatingQuestion = ({ question, state }: QuestionProps<'rating'>) => 
         })}
       </ol>
 
-      <Controls />
+      <Controls requiresAnswer={question.requiresAnswer} />
     </QuestionWrapper>
   );
 };

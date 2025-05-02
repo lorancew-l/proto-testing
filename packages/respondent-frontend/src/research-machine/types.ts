@@ -12,13 +12,10 @@ export type ResearchMachineEvents =
         | {
             type: PrototypeQuestion['type'];
             click: { x: number; y: number; area: PrototypeArea | null };
-          }
-        | {
-            type: PrototypeQuestion['type'];
-            givenUp: true;
           };
     }
   | { type: 'answer' }
+  | { type: 'skip' }
   | { type: 'retryEventSending' }
   | PendingEventStatusUpdate;
 
@@ -70,7 +67,7 @@ export type AnswerStackRecord = {
 
 export type PendingEvent = {
   id: string;
-  event: ResearchEvent;
+  payload: ResearchEvent;
   status: 'scheduled' | 'pending' | 'fulfilled' | 'rejected';
 };
 
@@ -88,4 +85,5 @@ export type ResearchMachineContext = {
   research: Research & { id: string };
   state: ResearchState;
   eventSenderError: boolean;
+  validationError?: string;
 };

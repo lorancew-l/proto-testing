@@ -37,6 +37,8 @@ export const GenericAnswers = ({
         <GenericAnswer key={answer.id} text={answer.text} count={answersStats[answer.id] ?? 0} total={answersStats.total ?? 0} />
       ))}
 
+      {!!answersStats.skipped && <GenericAnswer text="Пропущен" count={answersStats.skipped} total={answersStats.total ?? 0} />}
+
       <li className={classes.total}>
         <span>Ответов: </span>
         <span className={classes.totalValue}>{answersStats.total ?? 0}</span>

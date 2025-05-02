@@ -7,11 +7,13 @@ import styles from './task-description.module.css';
 export const TaskDescription = ({
   title,
   description,
+  canGiveUp,
   onContinue,
   onGiveUp,
 }: {
   title: string;
   description: string;
+  canGiveUp: boolean;
   onContinue: VoidFunction;
   onGiveUp: VoidFunction;
 }) => {
@@ -26,9 +28,11 @@ export const TaskDescription = ({
       </div>
 
       <div className={styles.actions}>
-        <Button variant="plain" onClick={onGiveUp} fullWidth={isMobile}>
-          Не могу выполнить задание
-        </Button>
+        {canGiveUp && (
+          <Button variant="plain" onClick={onGiveUp} fullWidth={isMobile}>
+            Не могу выполнить задание
+          </Button>
+        )}
 
         <Button onClick={onContinue} fullWidth={isMobile}>
           Продолжить

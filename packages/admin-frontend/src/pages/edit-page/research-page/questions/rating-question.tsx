@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { range } from 'lodash';
 
 import StarBorderIcon from '@mui/icons-material/StarBorder';
@@ -37,8 +39,8 @@ const useStyles = makeStyles()((theme) => ({
   ratingDigit: {
     padding: theme.spacing(1.5),
     border: `1px solid #d5d6da`,
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -46,8 +48,8 @@ const useStyles = makeStyles()((theme) => ({
     borderRadius: theme.shape.borderRadius,
   },
   ratingStar: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
   },
 }));
 
@@ -65,15 +67,11 @@ export const RatingQuestion = ({ question, index }: { question: RatingQuestionTy
 
       <div className={classes.ratingContainer}>
         {ratingRange.map((rating) => (
-          <>
-            {question.preset === 'digits' && (
-              <div key={rating} className={classes.ratingDigit}>
-                {rating}
-              </div>
-            )}
+          <React.Fragment key={rating}>
+            {question.preset === 'digits' && <div className={classes.ratingDigit}>{rating}</div>}
 
-            {question.preset === 'stars' && <StarBorderIcon className={classes.ratingStar} key={rating} color="action" />}
-          </>
+            {question.preset === 'stars' && <StarBorderIcon key={rating} className={classes.ratingStar} color="action" />}
+          </React.Fragment>
         ))}
       </div>
     </div>

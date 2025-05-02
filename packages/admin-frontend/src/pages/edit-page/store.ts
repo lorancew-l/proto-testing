@@ -158,7 +158,6 @@ export const useEditPageStore = create<EditPageStore>()(
           setSection: (section) => set({ section }),
           setActiveEntity: (activeEntity) => {
             set({ activeEntity });
-
             if (activeEntity.type === 'question') {
               const questionIndex = get().research.questions.findIndex((q) => q.id === activeEntity.questionId);
               get().actions.form.focus(`research.questions.${questionIndex}`, true);
@@ -167,6 +166,9 @@ export const useEditPageStore = create<EditPageStore>()(
           removeQuestion: (id) =>
             set((state) => {
               state.research.questions = state.research.questions.filter((q) => q.id !== id);
+              if (state.activeEntity.type === 'question' && state.activeEntity.questionId === id) {
+                state.activeEntity = { type: 'research' };
+              }
             }),
           duplicateQuestion: (id) =>
             set((state) => {
@@ -204,10 +206,12 @@ export const useEditPageStore = create<EditPageStore>()(
             const state = get();
             const { questions } = state.research;
             const nextQuestions = [...questions];
-            nextQuestions.splice(index, 0, generateQuestion('single'));
+            const newQuestion = generateQuestion('single');
+            nextQuestions.splice(index, 0, newQuestion);
 
             set((state) => {
               state.research.questions = nextQuestions;
+              state.activeEntity = { type: 'question', questionId: newQuestion.id };
             });
             state.actions.form.focus(`research.questions.${index}.text`);
           },

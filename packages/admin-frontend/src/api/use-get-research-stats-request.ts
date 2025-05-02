@@ -37,7 +37,7 @@ export type PrototypeQuestionStats = {
   sessions: PrototypeQuestionSessionStats[];
 };
 
-export type GenericQuestionStats = Record<string, number> & { total?: number };
+export type GenericQuestionStats = Record<string, number> & { skipped?: number; total?: number };
 
 interface Stats {
   load?: number;

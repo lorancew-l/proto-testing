@@ -156,6 +156,11 @@ const QuestionWrapper = ({
     setActiveEntity({ type: 'question', questionId: id });
   };
 
+  const handleInsertQuestion = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+    insertQuestion(index + 1);
+  };
+
   useEffect(() => {
     if (ref.current) {
       registerField(
@@ -195,12 +200,12 @@ const QuestionWrapper = ({
         {children}
       </li>
 
-      <Separator onClick={() => insertQuestion(index + 1)} />
+      <Separator onClick={handleInsertQuestion} />
     </>
   );
 };
 
-const Separator = ({ onClick }: { onClick: VoidFunction }) => {
+const Separator = ({ onClick }: { onClick: (event: React.SyntheticEvent) => void }) => {
   const { classes } = useStyles();
 
   return (

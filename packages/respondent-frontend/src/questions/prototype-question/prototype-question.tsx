@@ -27,7 +27,7 @@ export const PrototypeQuestion = ({ question, state }: QuestionProps<'prototype'
 
   const handleAnswer = () => send({ type: 'answer' });
 
-  const handleGiveUp = () => send({ type: 'selectAnswer', answer: { type: 'prototype', givenUp: true } });
+  const handleGiveUp = () => send({ type: 'skip' });
 
   return (
     <div className={styles.root}>
@@ -38,6 +38,7 @@ export const PrototypeQuestion = ({ question, state }: QuestionProps<'prototype'
           <TaskDescription
             title={question.text}
             description={question.description}
+            canGiveUp={!question.requiresAnswer}
             onContinue={() => setTaskDescriptionOpen(false)}
             onGiveUp={handleGiveUp}
           />

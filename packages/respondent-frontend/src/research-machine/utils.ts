@@ -117,13 +117,31 @@ export const createInitialContext = (research: Research & { id: string }): Resea
 export const createPendingEvent = (event: ResearchEvent): PendingEvent => {
   return {
     id: nanoid(10),
-    event,
+    payload: event,
     status: 'scheduled',
   };
 };
 
 export const pushPendingEvent = (state: ResearchState, event: ResearchEvent): ResearchState => {
   const pendingEvents = state.pendingEvents;
+
+  const isAlreadyScheduled = pendingEvents.some((pendingEvent) => {
+    switch (event.type) {
+      case 'research-load':
+        return pendingEvent.payload.type === event.type;
+      case 'research-start':
+        return pendingEvent.payload.type === event.type;
+      case 'research-answer':
+        return pendingEvent.payload.type === event.type && pendingEvent.payload.questionId === event.questionId;
+      case 'research-finish':
+        return pendingEvent.payload.type === event.type;
+      default:
+        break;
+    }
+  });
+
+  if (isAlreadyScheduled) return state;
+
   return {
     ...state,
     pendingEvents: [...pendingEvents, createPendingEvent(event)],

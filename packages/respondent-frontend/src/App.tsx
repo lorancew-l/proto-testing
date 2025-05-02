@@ -23,6 +23,7 @@ export const App = () => {
 
   const finished = useResearchSelector((context) => context.state.finished);
   const eventSenderError = useResearchSelector((context) => context.eventSenderError);
+  const validationError = useResearchSelector((context) => context.validationError);
 
   if (eventSenderError) {
     return <SendEventErrorScreen />;
@@ -35,5 +36,5 @@ export const App = () => {
   if (!question || !questionState) return null;
 
   const Component = questionTypeToComponent[question.type] as React.ComponentType<QuestionProps<Question['type']>>;
-  return <Component question={question} state={questionState} />;
+  return <Component question={question} state={questionState} error={validationError} />;
 };

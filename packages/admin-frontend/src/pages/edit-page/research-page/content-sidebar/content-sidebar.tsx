@@ -89,7 +89,7 @@ const QuestionItem = memo(({ question, index }: { question: Question; index: num
 
   const Icon = questionTypeToIcon[question.type];
   const isActive = useIsActiveQuestion(question.id);
-  const isEmptyText = question.text === '<p></p>';
+  const isEmptyText = question.text === '' || question.text === '<p></p>';
 
   const setQuestionActive = (event: React.SyntheticEvent) => {
     event.stopPropagation();

@@ -5,7 +5,7 @@ import { DatabaseService } from 'src/database/database.service';
 
 import { StatisticsProviderService } from './statistics-provider.service';
 
-type GenericQuestionStats = Record<string | number, number> & { total: number };
+type GenericQuestionStats = Record<string | number, number> & { skipped: number; total: number };
 
 type PrototypeQuestionSessionStats = {
   startTs: number;
@@ -173,12 +173,16 @@ export class ResearchStatisticsService {
         const answers = JSON.parse(row.answers) as string[];
 
         if (!stats) {
-          stats = { total: 0 };
+          stats = { total: 0, skipped: 0 };
           questionAnswerStats[row.question_id] = stats;
         }
 
         for (const answer of answers) {
           stats[answer] = (stats[answer] ?? 0) + 1;
+        }
+
+        if (!answers.length) {
+          stats.skipped += 1;
         }
 
         stats.total += 1;

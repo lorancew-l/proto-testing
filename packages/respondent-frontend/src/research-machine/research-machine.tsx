@@ -36,11 +36,7 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
 
           const sendEvent = async (pendingEvent: PendingEvent) => {
             try {
-              sendBack({
-                type: 'pendingEventStatusUpdate',
-                event: { ...pendingEvent, status: 'pending' },
-              } satisfies PendingEventStatusUpdate);
-              await eventSender.sendEvent(pendingEvent.event);
+              await eventSender.sendEvent(pendingEvent.payload);
               sendBack({
                 type: 'pendingEventStatusUpdate',
                 event: { ...pendingEvent, status: 'fulfilled' },
@@ -68,6 +64,33 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
       initResearch: assign(({ context }) => {
         return {
           state: calculateNextScreen(context),
+        };
+      }),
+      skipQuestion: assign(({ context }) => {
+        if (!context.state.questionId) return {};
+        const record = getAnswerStackRecord(context.state.answerStack, context.state.questionId);
+
+        let nextRecord = record;
+
+        if (nextRecord.type === 'prototype') {
+          nextRecord = {
+            ...nextRecord,
+            givenUp: true,
+            endTs: Date.now(),
+            answers: updatePrototypeLastScreenState(nextRecord.answers, (answer) => ({
+              ...answer,
+              endTs: Date.now(),
+            })),
+          };
+        } else {
+          nextRecord = { ...nextRecord, answers: [] };
+        }
+
+        return {
+          state: {
+            ...context.state,
+            answerStack: updateAnswerStackRecord(context.state.answerStack, nextRecord),
+          },
         };
       }),
       selectAnswer: assign(({ context, event }) => {
@@ -110,18 +133,6 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
             }
             case 'prototype':
               assertAnswerStackRecordType(answerStackRecord, 'prototype');
-
-              if ('givenUp' in answer) {
-                return {
-                  ...answerStackRecord,
-                  givenUp: true,
-                  endTs: Date.now(),
-                  answers: updatePrototypeLastScreenState(answerStackRecord.answers, (answer) => ({
-                    ...answer,
-                    endTs: Date.now(),
-                  })),
-                };
-              }
 
               const { click } = answer;
               const { area } = click;
@@ -170,8 +181,9 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
         };
       }),
       scheduleStartEvent: assign(({ context }) => {
+        if (context.state.started) return {};
         return {
-          state: pushPendingEvent(context.state, { type: 'research-start' }),
+          state: { ...pushPendingEvent(context.state, { type: 'research-start' }), started: true },
         };
       }),
       scheduleFinishEvent: assign(({ context }) => {
@@ -195,7 +207,12 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
           event: failedEvents,
         };
       }),
-      setValidationError: () => {},
+      setValidationError: assign(() => ({
+        validationError: 'Обязательный вопрос',
+      })),
+      clearValidationError: assign(() => ({
+        validationError: undefined,
+      })),
       setEventSenderError: assign(() => ({
         eventSenderError: true,
       })),
@@ -237,6 +254,18 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
           event: scheduledEvents,
         };
       }),
+      markEventsSended: assign(({ context }) => {
+        const pendingEvents = context.state.pendingEvents.map((event) =>
+          event.status === 'scheduled' ? { ...event, status: 'pending' as const } : event,
+        );
+
+        return {
+          state: {
+            ...context.state,
+            pendingEvents,
+          },
+        };
+      }),
     },
     guards: {
       isAllEventsSend: ({ context }) => !context.state.pendingEvents.length,
@@ -248,13 +277,19 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
         );
       },
       hasPendingEvents: ({ context }) => context.state.pendingEvents.some((event) => event.status === 'pending'),
-      isNotStarted: ({ context }) => !context.state.started,
-      isValidAnswer: () => true,
-      isResearchFinished: ({ context }) => context.state.finished,
-      shouldAutoCommitAnswer: ({ context }) => {
-        const lastRecord = getAnswerStackLastRecord(context.state);
-        return lastRecord && lastRecord.type === 'prototype' && lastRecord.givenUp;
+      isValidAnswer: ({ context }) => {
+        if (!context.state.questionId) return false;
+        const record = getAnswerStackRecord(context.state.answerStack, context.state.questionId);
+        const question = context.research.questions.find((q) => q.id === record.questionId);
+        return !question?.requiresAnswer || !!record.answers.length;
       },
+      isSkippable: ({ context }) => {
+        if (!context.state.questionId) return false;
+        const record = getAnswerStackRecord(context.state.answerStack, context.state.questionId);
+        const question = context.research.questions.find((q) => q.id === record.questionId);
+        return !question?.requiresAnswer;
+      },
+      isResearchFinished: ({ context }) => context.state.finished,
     },
   }).createMachine({
     /** @xstate-layout N4IgpgJg5mDOIC5QCc5gIbIMYAsDEADmAHYQCWxUAogG4kAuAyvevQK6wCqBErYA2gAYAuolAEA9rDL0yE4mJAAPRAHYAnKoB0ADgBsAVgBMB9QdWmAjHqMAaEAE9EAWgP6tgy5YDMgvV+MdAwAWAF9Q+1RYDGx8IVEkEElpWXlFFQQQ9S1VIz1vLMELdR1veycEV1Kc-29rQRLg4O8dcMi0TFwtWBZkejx4xWSZOQVEjOcAvS06o29fHUEDQSN1O0cXI2DpvW3LVV3NXxKDNpAomK6ARzY4VOJGLFQSbrYAIwBbGXpIPGiAGzAWHoAEFiLAAO5gZCDRLDe7pFz6SxafLePQYpbqArNcqISyaLRuYIGPR+YKWPyCdFnC6dHBaG53UaPZ7EV6fb6-AFA0HgqEwywJcRSEZpcZIslaHzosnBA6GUx4hA4mYtHQ6VQ6awHMy0jqxRm3Hosp5gF6wd5feg-CB4dD86GwkUpUaIyqrFHBIIGbzyyzbbzqZVGSm6Hy5dTqCPy1oRc4G67G+6s83sy2cm2-B2Qp1CoaihESj1BXSqBrlgpGPwmZWq+YazXavS607xumGpkm+Spi1W74UKBaAjICRYODSSgDEQF13i0AZAkowwUilLJbl4MbBCqbxaba+taa9R6bHzfXRelG5k9s19zOySjD0fj2CTqADfNwwtu4u+5clN4qzNLseSWMq7iniSyzel4JR5BelwMl2KZ3um-Y2oOWhgHQxBMCQEDQlQyCjsgeCoPQyAOLQDCMARg7OkkP7zsoiDBOoghaCe1bRv4RilCSdZaqi6jBCsBIGG4+iaIhV4oaabIctaj5DjhtEEURJESGRjHwr+C6IEGRhEm4GgEvo8zBOsFRzJxoZ6NqJQaEBJRxu0l6dsmClpt0YCAsCAByYBKEwaHTsKTFzmMBkIJYOjGZqBj7A5R5iWYyrOKGBj7vkQS5UemphO2ibIV5t6KTygXBaFbKfhFeksRMSXZPsfghCYdQaMEGWhpxlJNLu-FeC0bjhPGxASIR8CJB2uCzmK0WsZUEZ7vM1Ikqo1j8YYGXNCi-XbPkWq7r6qiyYaPSYPQ81FjFkxAdla1+uYW36AYPWWMZOKHhYzXbG5CYeUmN4PGhN36UtzgcdkaIYmSpg4mU26ZYSRibXBGqmII7HncD3agxVGG2uDjUuOxOj7pScwYt6-jyiG8wzAcoYEksBRxbjpUg726EPoOJOLYuu4zOxAS5A0JTgcjnHyjxfEFA5lKqEV7lIde+M80pA5PiOY4Tvz35Re6RihiL0aWOYPGSyGJsmS2OgUvZxg+Jz6uoYTfNPmpeF0aQmmkQL7qmBTJI4rTWryu924m8ZkktsHVkcf4eiu-J5U+ZV9BBSFPOB8W1bGdivoO80A1WXoGUlES2PWDojTegUAOzQyABmFBkLAOCQHnMWUisWgm008w+GsWoZRJ0pJY3gjkjKY2hEAA */
@@ -264,7 +299,7 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
     invoke: { id: 'eventSender', src: 'eventSender' },
     always: {
       guard: 'hasScheduledEvents',
-      actions: 'sendScheduledEvents',
+      actions: ['sendScheduledEvents', 'markEventsSended'],
     },
     on: {
       pendingEventStatusUpdate: {
@@ -284,41 +319,35 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
         states: {
           submitted: {
             on: {
-              selectAnswer: [
-                {
-                  target: 'submitted',
-                  guard: 'isNotStarted',
-                  actions: ['scheduleStartEvent', 'selectAnswer'],
-                },
-                {
-                  target: 'answering',
-                  actions: 'selectAnswer',
-                },
-              ],
+              selectAnswer: {
+                target: 'submitted',
+                actions: ['scheduleStartEvent', 'selectAnswer', 'clearValidationError'],
+              },
               answer: [
                 {
                   guard: 'isValidAnswer',
                   target: 'submitting',
-                  actions: 'scheduleAnswerEvent',
+                  actions: ['scheduleStartEvent', 'scheduleAnswerEvent', 'clearValidationError'],
                 },
                 {
                   target: 'submitted',
-                  actions: 'setValidationError',
+                  actions: ['scheduleStartEvent', 'setValidationError'],
+                },
+              ],
+              skip: [
+                {
+                  guard: 'isSkippable',
+                  target: 'skipping',
+                  actions: ['scheduleStartEvent', 'skipQuestion', 'clearValidationError'],
                 },
               ],
             },
           },
-          answering: {
-            always: [
-              {
-                guard: 'shouldAutoCommitAnswer',
-                target: 'submitting',
-                actions: 'scheduleAnswerEvent',
-              },
-              {
-                target: 'submitted',
-              },
-            ],
+          skipping: {
+            always: {
+              target: 'submitting',
+              actions: 'scheduleAnswerEvent',
+            },
           },
           submitting: {
             initial: 'processing',
