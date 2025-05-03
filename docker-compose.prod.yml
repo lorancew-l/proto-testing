@@ -126,6 +126,7 @@ services:
       dockerfile: Dockerfile.event-collector
     environment:
       - APP_PORT=${COLLECTOR_APP_PORT}
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN}
       - CLICKHOUSE_URL=${CLICKHOUSE_URL}
       - CLICKHOUSE_DB=${CLICKHOUSE_DB}
       - CLICKHOUSE_USER=${CLICKHOUSE_USER}

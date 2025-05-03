@@ -87,6 +87,7 @@ export const QuestionAnswers = ({
 
   return (
     <ol className={classes.list}>
+      {/* @ts-ignore */}
       <DragDropProvider onDragEnd={(event) => moveAnswer(questionId, event)}>
         {answers.map((answer, index) => (
           <QuestionAnswer

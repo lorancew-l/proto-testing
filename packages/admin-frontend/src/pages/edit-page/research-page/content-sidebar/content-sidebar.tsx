@@ -70,6 +70,7 @@ export const ContentSidebar = ({ isLoading }: { isLoading: boolean }) => {
     <Sidebar isLoading={isLoading}>
       <Typography variant="h6">Содержание</Typography>
 
+      {/* @ts-ignore */}
       <DragDropProvider onDragEnd={moveQuestion}>
         <ol className={classes.questionList}>
           {questions.map((question, index) => (

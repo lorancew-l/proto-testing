@@ -5,7 +5,6 @@ import { Research as ResearchData } from 'shared';
 
 export class UpdateResearchDTO {
   @ApiProperty({ required: true, description: 'Research name' })
-  @IsNotEmpty()
   @IsString()
   name: string;
 

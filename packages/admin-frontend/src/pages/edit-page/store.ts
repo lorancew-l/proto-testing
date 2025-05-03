@@ -197,7 +197,8 @@ export const useEditPageStore = create<EditPageStore>()(
                 text: question.text,
                 ...('answers' in question &&
                   type !== 'rating' &&
-                  type !== 'prototype' && {
+                  type !== 'prototype' &&
+                  type !== 'free-text' && {
                     answers: question.answers.map((a) => generateAnswer(type, { id: a.id, text: a.text })),
                   }),
               });

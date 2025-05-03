@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 
 import { Research } from 'shared';
 
-import { App } from './app';
+import { App } from './app.tsx';
 import './index.css';
 import { ResearchMachineContextProvider } from './research-machine';
 

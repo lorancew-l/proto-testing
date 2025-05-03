@@ -18,8 +18,14 @@ async function bootstrap() {
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb' }));
 
+  const config = app.get(ConfigService);
+  const allowedOrigin = config.get('ALLOWED_ORIGIN');
+
+  if (!allowedOrigin) throw new Error('ALLOWED_ORIGIN is not provided');
+  const originRegex = new RegExp(`^http:\/\/${allowedOrigin}(:\\d+)?\/?$`);
+
   app.enableCors({
-    origin: [/^http:\/\/localhost(:\d+)?$/],
+    origin: [originRegex],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -27,10 +33,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, document);
 
-  const config = app.get(ConfigService);
   const port = config.get('APP_PORT');
 
-  if (!port) throw new Error('Port is not provided');
+  if (!port) throw new Error('APP_PORT is not provided');
 
   await app.listen(port);
 }
