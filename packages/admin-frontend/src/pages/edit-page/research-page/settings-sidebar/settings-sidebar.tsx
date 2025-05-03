@@ -10,16 +10,18 @@ import { useEditPageStore } from '../../store';
 import { Sidebar } from '../sidebar';
 
 import { ChipSelect } from './chip-select';
+import { DisplayRule } from './display-rule';
 import { FormNumberInput } from './form-number-input';
 import { FormSelect } from './form-select';
 import { FormSwitchInput } from './form-switch-input';
 import { FormTextInput } from './form-text-input';
+import { LabeledSetting } from './labeled-setting';
 
 const useStyles = makeStyles()((theme) => ({
   settings: {
     display: 'flex',
     flexDirection: 'column',
-    gap: theme.spacing(1.5),
+    gap: theme.spacing(2),
     marginTop: theme.spacing(2),
   },
   twoColumnSetting: {
@@ -73,21 +75,25 @@ const QuestionSettings = ({ questionId }: { questionId: string }) => {
   const QuestionSettings = questionTypeToSettings[question.type];
   const path = `research.questions.${question.index}` as const;
 
-  return <QuestionSettings path={path} />;
+  return <QuestionSettings path={path} questionIndex={question.index} />;
 };
 
-const SingleQuestionSettings = ({ path }: QuestionSettingsProps) => {
+const SingleQuestionSettings = ({ path, questionIndex }: QuestionSettingsProps) => {
   return (
     <>
       <FormSwitchInput path={`${path}.requiresAnswer`} label="Обязательный вопрос" />
+
+      <DisplayRule path={path} questionIndex={questionIndex} />
     </>
   );
 };
 
-const MultipleQuestionSettings = ({ path }: QuestionSettingsProps) => {
+const MultipleQuestionSettings = ({ path, questionIndex }: QuestionSettingsProps) => {
   return (
     <>
       <FormSwitchInput path={`${path}.requiresAnswer`} label="Обязательный вопрос" />
+
+      <DisplayRule path={path} questionIndex={questionIndex} />
     </>
   );
 };
@@ -98,43 +104,55 @@ const ratingPresetOptions = [
 ];
 const ratingMinOptions = range(0, 2).map((value) => ({ value, label: value.toString() }));
 const ratingMaxOptions = range(5, 11).map((value) => ({ value, label: value.toString() }));
-const RatingQuestionSettings = ({ path }: QuestionSettingsProps) => {
+const RatingQuestionSettings = ({ path, questionIndex }: QuestionSettingsProps) => {
   const { classes } = useStyles();
 
   return (
     <>
       <FormSwitchInput path={`${path}.requiresAnswer`} label="Обязательный вопрос" />
 
-      <ChipSelect path={`${path}.preset`} options={ratingPresetOptions} />
+      <LabeledSetting label="Тип рейтинга">
+        <ChipSelect path={`${path}.preset`} options={ratingPresetOptions} />
+      </LabeledSetting>
 
-      <div className={classes.twoColumnSetting}>
-        <FormSelect path={`${path}.min`} label="от" options={ratingMinOptions} />
+      <LabeledSetting label="Диапазон рейтинга">
+        <div className={classes.twoColumnSetting}>
+          <FormSelect path={`${path}.min`} label="от" options={ratingMinOptions} />
 
-        <FormSelect path={`${path}.max`} label="до" options={ratingMaxOptions} />
-      </div>
+          <FormSelect path={`${path}.max`} label="до" options={ratingMaxOptions} />
+        </div>
+      </LabeledSetting>
+
+      <DisplayRule path={path} questionIndex={questionIndex} />
     </>
   );
 };
 
-const FreeTextQuestionSettings = ({ path }: QuestionSettingsProps) => {
+const FreeTextQuestionSettings = ({ path, questionIndex }: QuestionSettingsProps) => {
   return (
     <>
       <FormSwitchInput path={`${path}.requiresAnswer`} label="Обязательный вопрос" />
 
-      <FormNumberInput path={`${path}.textLimit`} label="Ограничение символов" min={50} max={2000} />
+      <LabeledSetting label="Ограничение символов">
+        <FormNumberInput path={`${path}.textLimit`} min={50} max={2000} fullWidth />
+      </LabeledSetting>
+
+      <DisplayRule path={path} questionIndex={questionIndex} />
     </>
   );
 };
 
-const PrototypeQuestionSettings = ({ path }: QuestionSettingsProps) => {
+const PrototypeQuestionSettings = ({ path, questionIndex }: QuestionSettingsProps) => {
   return (
     <>
       <FormSwitchInput path={`${path}.requiresAnswer`} label="Обязательный вопрос" />
+
+      <DisplayRule path={path} questionIndex={questionIndex} />
     </>
   );
 };
 
-type QuestionSettingsProps = { path: `research.questions.${number}` };
+type QuestionSettingsProps = { path: `research.questions.${number}`; questionIndex: number };
 export const questionTypeToSettings: Record<Question['type'], React.ComponentType<QuestionSettingsProps>> = {
   single: SingleQuestionSettings,
   multiple: MultipleQuestionSettings,

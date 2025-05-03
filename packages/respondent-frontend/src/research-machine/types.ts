@@ -73,7 +73,6 @@ type QuestionAnswerState =
 
 export type AnswerStackRecord = {
   questionId: string;
-  submitted: boolean;
 } & QuestionAnswerState;
 
 export type PendingEvent = {

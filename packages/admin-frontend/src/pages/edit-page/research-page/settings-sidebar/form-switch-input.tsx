@@ -25,7 +25,7 @@ export const FormSwitchInput = ({ path, label }: { path: BooleanPaths; label?: s
 
   return (
     <div className={classes.container}>
-      <Typography>{label}</Typography>
+      <Typography color="text.secondary">{label}</Typography>
 
       <Switch checked={value} onChange={handleChange} />
     </div>

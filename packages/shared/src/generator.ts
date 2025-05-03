@@ -43,6 +43,7 @@ export const generateQuestion = <T extends Question['type']>(
     id: nanoid(10),
     text: '',
     requiresAnswer: true,
+    displayRule: null,
   };
 
   switch (type) {

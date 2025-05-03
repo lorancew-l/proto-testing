@@ -11,6 +11,7 @@ export const ChipSelect = ({ path, options }: { path: TextPaths; options: { valu
     <Box sx={{ display: 'flex', gap: 0.5 }}>
       {options.map((option) => (
         <Chip
+          key={option.value}
           size="small"
           variant="outlined"
           label={option.label}

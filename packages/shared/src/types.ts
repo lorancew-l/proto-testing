@@ -1,7 +1,34 @@
+export type DisplayRuleOperand =
+  | {
+      id: string;
+      type: 'answer';
+      operator: 'equals' | 'not-equals' | 'greater' | 'less' | 'contain' | 'not-contain';
+      questionId: string;
+      answerId: string;
+    }
+  | {
+      id: string;
+      type: 'utm';
+      operator: 'equals' | 'not-equals' | 'exists' | 'not-exists';
+      name: string;
+      value?: string;
+    };
+
+export type DisplayRuleOperator = 'and' | 'or';
+
+export type DisplayRuleType = 'show' | 'hide';
+
+export type DisplayRule = {
+  displayType: DisplayRuleType;
+  operands: DisplayRuleOperand[];
+  operators: DisplayRuleOperator[];
+};
+
 export interface BaseQuestion {
   id: string;
   text: string;
   requiresAnswer: boolean;
+  displayRule: DisplayRule | null;
 }
 
 export interface BaseAnswer {

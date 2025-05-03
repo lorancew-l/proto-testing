@@ -6,7 +6,7 @@ const useStyles = makeStyles()((theme) => ({
   sidebarCommon: {
     borderRadius: theme.shape.borderRadius * 4,
     height: '100%',
-    width: 300,
+    width: 350,
     position: 'sticky',
     top: 0,
   },

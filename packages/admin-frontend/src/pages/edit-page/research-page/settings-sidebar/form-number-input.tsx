@@ -4,7 +4,19 @@ import { FieldsWithType, useFieldController } from '../../store';
 
 type NumberPaths = FieldsWithType<number>;
 
-export const FormNumberInput = ({ path, label, min, max }: { path: NumberPaths; label?: string; min?: number; max?: number }) => {
+export const FormNumberInput = ({
+  path,
+  label,
+  min,
+  max,
+  fullWidth,
+}: {
+  path: NumberPaths;
+  label?: string;
+  min?: number;
+  max?: number;
+  fullWidth?: boolean;
+}) => {
   const { value, onChange } = useFieldController(path);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,7 +31,8 @@ export const FormNumberInput = ({ path, label, min, max }: { path: NumberPaths; 
       label={label}
       value={value}
       onChange={handleChange}
-      inputProps={{ min }}
+      inputProps={{ min, max }}
+      fullWidth={fullWidth}
     />
   );
 };
