@@ -6,16 +6,18 @@ import { Client } from 'minio';
 @Injectable()
 export class S3StorageService {
   private readonly s3Client: Client;
-  private readonly endpoint: string;
   private readonly port: string;
+  private readonly origin: string;
 
   constructor(configService: ConfigService) {
     const endPoint = configService.get<string>('MINIO_ENDPOINT');
+    const origin = configService.get<string>('ORIGIN');
     const port = configService.get<string>('MINIO_PORT');
+    if (!origin) throw new Error('Missing ORIGIN variable');
     if (!endPoint) throw new Error('Missing MINIO_ENDPOINT variable');
     if (!port) throw new Error('Missing MINIO_PORT variable');
-    this.endpoint = endPoint;
     this.port = port;
+    this.origin = origin;
 
     this.s3Client = new Client({
       endPoint,
@@ -56,7 +58,7 @@ export class S3StorageService {
       'Content-Type': file.mimetype,
     });
 
-    const url = `http://${this.endpoint}:${this.port}/${bucket}/${fileName}`;
+    const url = `http://${this.origin}:${this.port}/${bucket}/${fileName}`;
     return { url };
   }
 }

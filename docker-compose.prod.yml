@@ -94,6 +94,7 @@ services:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
       - MINIO_USE_SSL=${MINIO_USE_SSL}
+      - ORIGIN=${ORIGIN}
     depends_on:
       admin_postgres:
         condition: service_healthy
@@ -112,6 +113,7 @@ services:
       - POSTGRES_PORT=${RESPONDENT_POSTGRES_PORT}
       - DATABASE_URL=postgresql://${RESPONDENT_POSTGRES_USER}:${RESPONDENT_POSTGRES_PASSWORD}@respondent_postgres:${RESPONDENT_POSTGRES_PORT}/${RESPONDENT_POSTGRES_DB}
       - APP_PORT=${RESPONDENT_APP_PORT}
+      - ORIGIN=${ORIGIN}
     depends_on:
       respondent_postgres:
         condition: service_healthy
@@ -126,7 +128,7 @@ services:
       dockerfile: Dockerfile.event-collector
     environment:
       - APP_PORT=${COLLECTOR_APP_PORT}
-      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN}
+      - ALLOWED_ORIGIN=${ORIGIN}
       - CLICKHOUSE_URL=${CLICKHOUSE_URL}
       - CLICKHOUSE_DB=${CLICKHOUSE_DB}
       - CLICKHOUSE_USER=${CLICKHOUSE_USER}
