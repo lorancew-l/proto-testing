@@ -1,4 +1,12 @@
-import type { MultipleQuestion, PrototypeArea, PrototypeQuestion, RatingQuestion, Research, SingleQuestion } from 'shared';
+import type {
+  FreeTextQuestion,
+  MultipleQuestion,
+  PrototypeArea,
+  PrototypeQuestion,
+  RatingQuestion,
+  Research,
+  SingleQuestion,
+} from 'shared';
 
 export type PendingEventStatusUpdate = { type: 'pendingEventStatusUpdate'; event: PendingEvent };
 
@@ -9,6 +17,7 @@ export type ResearchMachineEvents =
         | { type: SingleQuestion['type']; answerId: string }
         | { type: MultipleQuestion['type']; answerId: string }
         | { type: RatingQuestion['type']; answerId: string }
+        | { type: FreeTextQuestion['type']; text: string }
         | {
             type: PrototypeQuestion['type'];
             click: { x: number; y: number; area: PrototypeArea | null };
@@ -38,6 +47,7 @@ export type ResearchEvent =
 export type SingleQuestionAnswerState = { type: SingleQuestion['type']; answers: string[] };
 export type MultipleQuestionAnswerState = { type: MultipleQuestion['type']; answers: string[] };
 export type RatingQuestionAnswerState = { type: RatingQuestion['type']; answers: string[] };
+export type FreeTextQuestionAnswerState = { type: FreeTextQuestion['type']; text: string };
 export type PrototypeQuestionAnswerState = {
   type: PrototypeQuestion['type'];
   startTs: number;
@@ -58,6 +68,7 @@ type QuestionAnswerState =
   | SingleQuestionAnswerState
   | MultipleQuestionAnswerState
   | RatingQuestionAnswerState
+  | FreeTextQuestionAnswerState
   | PrototypeQuestionAnswerState;
 
 export type AnswerStackRecord = {

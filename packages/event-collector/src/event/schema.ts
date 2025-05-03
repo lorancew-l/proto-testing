@@ -5,7 +5,7 @@ export const researchEventSchema = z.object({
   sessionId: z.string(),
   type: z.enum(['research-load', 'research-start', 'research-answer', 'research-finish']),
   questionId: z.string().nullable(),
-  questionType: z.enum(['single', 'multiple', 'rating', 'prototype']).nullable(),
+  questionType: z.enum(['single', 'multiple', 'rating', 'free-text', 'prototype']).nullable(),
   answers: z.string().nullable(),
   appName: z.string(),
   revision: z.number(),

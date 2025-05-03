@@ -49,6 +49,10 @@ export class EventSender implements IEventSender {
       });
     }
 
+    if (event.answer.type === 'free-text') {
+      return event.answer.text;
+    }
+
     return JSON.stringify(event.answer.answers);
   }
 
@@ -78,7 +82,7 @@ export class EventSenderMock implements IEventSender {
   public sendEvent(event: ResearchEvent) {
     return this.postEvent({
       type: event.type,
-      answers: 'answer' in event ? JSON.stringify(event.answer.answers) : null,
+      answers: 'answer' in event ? ('answers' in event.answer ? JSON.stringify(event.answer.answers) : event.answer.text) : null,
       questionId: 'questionId' in event ? event.questionId : null,
       questionType: 'answer' in event ? event.answer.type : null,
     });

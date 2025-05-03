@@ -1,4 +1,5 @@
 .error {
   color: #d32f2f;
   margin: calc(-1 * var(--spacing-xs)) 0 var(--spacing-xs) 0;
+  font-size: 12px;
 }

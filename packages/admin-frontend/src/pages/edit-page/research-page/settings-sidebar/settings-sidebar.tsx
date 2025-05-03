@@ -10,6 +10,7 @@ import { useEditPageStore } from '../../store';
 import { Sidebar } from '../sidebar';
 
 import { ChipSelect } from './chip-select';
+import { FormNumberInput } from './form-number-input';
 import { FormSelect } from './form-select';
 import { FormSwitchInput } from './form-switch-input';
 import { FormTextInput } from './form-text-input';
@@ -115,6 +116,16 @@ const RatingQuestionSettings = ({ path }: QuestionSettingsProps) => {
   );
 };
 
+const FreeTextQuestionSettings = ({ path }: QuestionSettingsProps) => {
+  return (
+    <>
+      <FormSwitchInput path={`${path}.requiresAnswer`} label="Обязательный вопрос" />
+
+      <FormNumberInput path={`${path}.textLimit`} label="Ограничение символов" min={50} max={2000} />
+    </>
+  );
+};
+
 const PrototypeQuestionSettings = ({ path }: QuestionSettingsProps) => {
   return (
     <>
@@ -128,5 +139,6 @@ export const questionTypeToSettings: Record<Question['type'], React.ComponentTyp
   single: SingleQuestionSettings,
   multiple: MultipleQuestionSettings,
   rating: RatingQuestionSettings,
+  'free-text': FreeTextQuestionSettings,
   prototype: PrototypeQuestionSettings,
 };

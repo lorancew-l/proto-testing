@@ -1,5 +1,6 @@
 import type { Question } from 'shared';
 
+import { FreeTextQuestion } from './free-text-question';
 import { MultipleQuestion } from './multiple-question';
 import { PrototypeQuestion } from './prototype-question';
 import { RatingQuestion } from './rating-question';
@@ -12,5 +13,6 @@ export const questionTypeToComponent: {
   single: SingleQuestion,
   multiple: MultipleQuestion,
   rating: RatingQuestion,
+  'free-text': FreeTextQuestion,
   prototype: PrototypeQuestion,
 };

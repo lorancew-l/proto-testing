@@ -3,6 +3,7 @@ import { nanoid } from 'nanoid';
 import {
   BaseAnswer,
   BaseQuestion,
+  FreeTextQuestion,
   MultipleQuestion,
   PrototypeQuestion,
   Question,
@@ -70,6 +71,14 @@ export const generateQuestion = <T extends Question['type']>(
         ...baseQuestion,
         ...overrides,
       } satisfies RatingQuestion;
+    case 'free-text':
+      return {
+        type,
+        textLimit: 250,
+        placeholder: '',
+        ...baseQuestion,
+        ...overrides,
+      } satisfies FreeTextQuestion;
     case 'prototype':
       return {
         type,

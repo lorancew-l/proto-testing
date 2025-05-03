@@ -1,3 +1,5 @@
+import React from 'react';
+
 import { makeStyles } from 'tss-react/mui';
 
 import { RichText } from '../rich-text';
@@ -39,10 +41,7 @@ export const GenericAnswers = ({
 
       {!!answersStats.skipped && <GenericAnswer text="Пропущен" count={answersStats.skipped} total={answersStats.total ?? 0} />}
 
-      <li className={classes.total}>
-        <span>Ответов: </span>
-        <span className={classes.totalValue}>{answersStats.total ?? 0}</span>
-      </li>
+      <TotalAnswers total={answersStats.total} />
     </ol>
   );
 };
@@ -93,6 +92,24 @@ const useAnswerStyles = makeStyles<{ width: number }>()((theme, { width }) => ({
     fontWeight: theme.typography.fontWeightMedium,
   },
 }));
+
+export const TotalAnswers = ({
+  total = 0,
+  tag = 'li',
+}: {
+  total: number | undefined;
+  tag?: keyof React.JSX.IntrinsicElements;
+}) => {
+  const { classes } = useStyles();
+  const Tag = tag as keyof React.JSX.IntrinsicElements;
+
+  return (
+    <Tag className={classes.total}>
+      <span>Ответов: </span>
+      <span className={classes.totalValue}>{total}</span>
+    </Tag>
+  );
+};
 
 export const GenericAnswer = ({ text, count, total }: { text: string; count: number; total: number }) => {
   const percent = total ? Math.floor((count / total) * 100) : 0;

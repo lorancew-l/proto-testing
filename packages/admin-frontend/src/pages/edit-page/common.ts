@@ -1,5 +1,6 @@
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import GradeIcon from '@mui/icons-material/Grade';
+import NotesIcon from '@mui/icons-material/Notes';
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import WebIcon from '@mui/icons-material/Web';
 
@@ -9,6 +10,7 @@ export const questionTypeToIcon: Record<Question['type'], React.ComponentType<{ 
   single: RadioButtonCheckedIcon,
   multiple: CheckBoxIcon,
   rating: GradeIcon,
+  'free-text': NotesIcon,
   prototype: WebIcon,
 };
 

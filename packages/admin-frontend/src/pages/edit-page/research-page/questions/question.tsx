@@ -8,6 +8,7 @@ import { makeStyles } from 'tss-react/mui';
 
 import { useEditPageActions, useIsActiveQuestion } from '../../store';
 
+import { FreeTextQuestion } from './free-text-question';
 import { MultipleQuestion } from './multiple-question';
 import { PrototypeQuestion } from './prototype-question';
 import { QuestionActions } from './question-actions';
@@ -113,6 +114,7 @@ const questionTypeToComponent: {
   single: SingleQuestion,
   multiple: MultipleQuestion,
   rating: RatingQuestion,
+  'free-text': FreeTextQuestion,
   prototype: PrototypeQuestion,
 };
 

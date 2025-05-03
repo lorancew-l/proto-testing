@@ -14,6 +14,7 @@ const typeToTitle: Record<Question['type'], string> = {
   single: 'Одиночный выбор',
   multiple: 'Множественный выбор',
   rating: 'Рейтинг',
+  'free-text': 'Открытый ответ',
   prototype: 'Тестирование прототипа',
 };
 

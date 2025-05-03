@@ -7,6 +7,8 @@ import { StatisticsProviderService } from './statistics-provider.service';
 
 type GenericQuestionStats = Record<string | number, number> & { skipped: number; total: number };
 
+type FreeTextQuestionStats = { answers: string[]; skipped: number; total: number };
+
 type PrototypeQuestionSessionStats = {
   startTs: number;
   endTs: number;
@@ -39,7 +41,7 @@ type PrototypeQuestionStats = {
   sessions: (PrototypeQuestionSessionStats & { id: string })[];
 };
 
-type QuestionStats = GenericQuestionStats | PrototypeQuestionStats;
+type QuestionStats = GenericQuestionStats | FreeTextQuestionStats | PrototypeQuestionStats;
 
 type QuestionsAnswersStats = Record<string, QuestionStats>;
 
@@ -182,6 +184,23 @@ export class ResearchStatisticsService {
         }
 
         if (!answers.length) {
+          stats.skipped += 1;
+        }
+
+        stats.total += 1;
+      }
+
+      if (row.question_type === 'free-text') {
+        let stats = questionAnswerStats[row.question_id] as FreeTextQuestionStats | undefined;
+
+        if (!stats) {
+          stats = { answers: [], total: 0, skipped: 0 };
+          questionAnswerStats[row.question_id] = stats;
+        }
+
+        if (row.answers) {
+          stats.answers.push(row.answers);
+        } else {
           stats.skipped += 1;
         }
 

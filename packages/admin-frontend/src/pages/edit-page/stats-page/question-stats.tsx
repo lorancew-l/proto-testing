@@ -3,11 +3,17 @@ import { memo } from 'react';
 import { Question as ResearchQuestion } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
+import { FreeTextQuestionStats } from './free-text-question-stats';
 import { MultipleQuestionStats } from './muiltiple-question-stats';
 import { PrototypeQuestionStats } from './prototype-question-stats';
 import { RatingQuestionStats } from './rating-question-stats';
 import { SingleQuestionStats } from './single-question-stats';
-import type { GenericQuestionStats, PrototypeQuestionStats as PrototypeQuestionStatsType, Stats } from './types';
+import type {
+  FreeTextQuestionStats as FreeTextQuestionStatsType,
+  GenericQuestionStats,
+  PrototypeQuestionStats as PrototypeQuestionStatsType,
+  Stats,
+} from './types';
 
 const useStyles = makeStyles()((theme) => ({
   questionWrapper: {
@@ -28,12 +34,17 @@ const questionTypeToComponent: {
   [T in QuestionType]: React.ComponentType<{
     question: Extract<ResearchQuestion, { type: T }>;
     index: number;
-    stats: T extends 'prototype' ? PrototypeQuestionStatsType | undefined : GenericQuestionStats | undefined;
+    stats: T extends 'prototype'
+      ? PrototypeQuestionStatsType | undefined
+      : T extends 'free-text'
+        ? FreeTextQuestionStatsType | undefined
+        : GenericQuestionStats | undefined;
   }>;
 } = {
   single: SingleQuestionStats,
   multiple: MultipleQuestionStats,
   rating: RatingQuestionStats,
+  'free-text': FreeTextQuestionStats,
   prototype: PrototypeQuestionStats,
 };
 
@@ -41,7 +52,7 @@ export const QuestionStats = memo(({ question, index, stats }: { question: Resea
   const Component = questionTypeToComponent[question.type] as React.ComponentType<{
     question: ResearchQuestion;
     index: number;
-    stats: GenericQuestionStats | PrototypeQuestionStatsType | undefined;
+    stats: GenericQuestionStats | FreeTextQuestionStatsType | PrototypeQuestionStatsType | undefined;
   }>;
 
   return (

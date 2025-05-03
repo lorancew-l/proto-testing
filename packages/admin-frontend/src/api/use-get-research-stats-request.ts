@@ -38,13 +38,14 @@ export type PrototypeQuestionStats = {
 };
 
 export type GenericQuestionStats = Record<string, number> & { skipped?: number; total?: number };
+export type FreeTextQuestionStats = { answers?: string[]; skipped?: number; total?: number };
 
 interface Stats {
   load?: number;
   start?: number;
   finish?: number;
   avgSessionTime: number;
-  answers: Record<string, GenericQuestionStats | PrototypeQuestionStats>;
+  answers: Record<string, GenericQuestionStats | FreeTextQuestionStats | PrototypeQuestionStats>;
 }
 
 export const useGetResearchStatsRequest = (props?: UseFetch<Stats>) => {

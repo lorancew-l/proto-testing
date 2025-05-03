@@ -88,6 +88,15 @@ export const createAnswerStackRecord = (question: Question): AnswerStackRecord =
     };
   }
 
+  if (question.type === 'free-text') {
+    return {
+      submitted: false,
+      questionId: question.id,
+      type: question.type,
+      text: '',
+    };
+  }
+
   return {
     submitted: false,
     questionId: question.id,

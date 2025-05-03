@@ -83,7 +83,7 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
             })),
           };
         } else {
-          nextRecord = { ...nextRecord, answers: [] };
+          nextRecord = 'answers' in nextRecord ? { ...nextRecord, answers: [] } : { ...nextRecord, text: '' };
         }
 
         return {
@@ -129,6 +129,13 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
               return {
                 ...answerStackRecord,
                 answers: [answer.answerId],
+              };
+            }
+            case 'free-text': {
+              assertAnswerStackRecordType(answerStackRecord, 'free-text');
+              return {
+                ...answerStackRecord,
+                text: answer.text,
               };
             }
             case 'prototype':
@@ -281,7 +288,7 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
         if (!context.state.questionId) return false;
         const record = getAnswerStackRecord(context.state.answerStack, context.state.questionId);
         const question = context.research.questions.find((q) => q.id === record.questionId);
-        return !question?.requiresAnswer || !!record.answers.length;
+        return !question?.requiresAnswer || ('answers' in record ? !!record.answers.length : !!record.text);
       },
       isSkippable: ({ context }) => {
         if (!context.state.questionId) return false;

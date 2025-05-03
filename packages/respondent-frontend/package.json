@@ -16,6 +16,7 @@
     "nanoid": "5.1.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-textarea-autosize": "8.5.9",
     "react-transition-group": "4.4.5",
     "shared": "workspace:^",
     "xstate": "5.19.2"

@@ -30,6 +30,12 @@ export interface RatingQuestion extends BaseQuestion {
   maxLabel: string;
 }
 
+export interface FreeTextQuestion extends BaseQuestion {
+  type: 'free-text';
+  textLimit: number;
+  placeholder: string;
+}
+
 export interface PrototypeArea {
   id: string;
   rect: { top: number; left: number; width: number; height: number };
@@ -57,7 +63,7 @@ export interface PrototypeQuestion extends BaseQuestion {
   screens: PrototypeScreen[];
 }
 
-export type Question = SingleQuestion | MultipleQuestion | RatingQuestion | PrototypeQuestion;
+export type Question = SingleQuestion | MultipleQuestion | RatingQuestion | FreeTextQuestion | PrototypeQuestion;
 
 export interface Research {
   questions: Question[];
