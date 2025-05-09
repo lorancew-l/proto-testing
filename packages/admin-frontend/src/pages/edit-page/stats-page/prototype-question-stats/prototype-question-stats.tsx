@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { forwardRef, useMemo, useState } from 'react';
 
 import DoDisturbAltIcon from '@mui/icons-material/DoDisturbAlt';
 import DoneIcon from '@mui/icons-material/Done';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import PersonIcon from '@mui/icons-material/Person';
 import PersonOffIcon from '@mui/icons-material/PersonOff';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { Dialog, Slide, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import { TransitionProps } from '@mui/material/transitions';
 
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -118,6 +119,15 @@ const useStyles = makeStyles<void, 'compactPreview'>()((theme, _, classes) => ({
   },
 }));
 
+const Transition = forwardRef(function Transition(
+  props: TransitionProps & {
+    children: React.ReactElement<unknown>;
+  },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
 export const PrototypeQuestionStats = ({
   question,
   index,
@@ -149,6 +159,10 @@ export const PrototypeQuestionStats = ({
     if (!session) return question.screens;
     return session.answers.map((answer) => ({ ...screenMap.get(answer.screenId)!, ssid: answer.ssid }));
   }, [question.screens, stats, selectedState?.sessionId]);
+
+  const handleScreenStatsClose = () => {
+    setSelectedState(null);
+  };
 
   return (
     <>
@@ -216,14 +230,16 @@ export const PrototypeQuestionStats = ({
         )}
       </QuestionStatsCard>
 
-      <PrototypeScreenStats
-        key={String(!!selectedState?.sessionId)}
-        stats={stats}
-        screens={screens}
-        selectedState={selectedState}
-        onClose={() => setSelectedState(null)}
-        onScreenSelect={(state) => setSelectedState((prev) => ({ ...prev, ...state }))}
-      />
+      <Dialog open={!!selectedState} onClose={handleScreenStatsClose} TransitionComponent={Transition} fullScreen>
+        <PrototypeScreenStats
+          key={String(!!selectedState?.sessionId)}
+          stats={stats}
+          screens={screens}
+          selectedState={selectedState}
+          onClose={handleScreenStatsClose}
+          onScreenSelect={(state) => setSelectedState((prev) => ({ ...prev, ...state }))}
+        />
+      </Dialog>
     </>
   );
 };

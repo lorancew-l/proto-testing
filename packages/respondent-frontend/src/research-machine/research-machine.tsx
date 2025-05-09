@@ -273,6 +273,18 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
           },
         };
       }),
+      markRejectedEventsSended: assign(({ context }) => {
+        const pendingEvents = context.state.pendingEvents.map((event) =>
+          event.status === 'rejected' ? { ...event, status: 'pending' as const } : event,
+        );
+
+        return {
+          state: {
+            ...context.state,
+            pendingEvents,
+          },
+        };
+      }),
     },
     guards: {
       isAllEventsSend: ({ context }) => !context.state.pendingEvents.length,
@@ -374,11 +386,14 @@ const createResearchMachine = ({ context, eventSender }: { context: ResearchMach
                 ],
               },
               eventSenderError: {
-                always: [{ guard: 'hasPendingEvents', target: 'processing' }],
+                always: [
+                  { guard: 'hasPendingEvents', target: 'processing' },
+                  { guard: 'isAllEventsSend', target: 'processing' },
+                ],
                 on: {
                   retryEventSending: {
                     target: 'processing',
-                    actions: 'retryEventSending',
+                    actions: ['retryEventSending', 'markRejectedEventsSended'],
                   },
                 },
               },
@@ -411,6 +426,7 @@ const useResearchMachine = (research: Research & { id: string; revision: number 
     });
   }, [research]);
   const [state, send, actor] = useMachine(machine);
+  console.log({ state });
   return { state, send, actor };
 };
 

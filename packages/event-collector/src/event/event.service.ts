@@ -8,7 +8,7 @@ import { ResearchEvent } from './schema';
 export class EventService {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  public writeEvent(event: ResearchEvent) {
+  public processEvent(event: ResearchEvent) {
     return this.databaseService.insert({
       table: 'research_events',
       values: [

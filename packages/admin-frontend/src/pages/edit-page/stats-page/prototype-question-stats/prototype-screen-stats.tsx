@@ -1,12 +1,11 @@
-import { forwardRef, useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { isNumber } from 'lodash';
 
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
-import { Dialog, FormControlLabel, FormGroup, Slide, Switch, Typography } from '@mui/material';
-import { TransitionProps } from '@mui/material/transitions';
+import { FormControlLabel, FormGroup, Switch, Typography } from '@mui/material';
 
 import type { PrototypeScreen } from 'shared';
 import { makeStyles } from 'tss-react/mui';
@@ -116,15 +115,6 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
-const Transition = forwardRef(function Transition(
-  props: TransitionProps & {
-    children: React.ReactElement<unknown>;
-  },
-  ref: React.Ref<unknown>,
-) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
-
 type ScreenStats = {
   respondentCount: number;
   totalRespondentCount: number;
@@ -230,8 +220,11 @@ export const PrototypeScreenStats = ({
           const isSelectedScreen = selectedState.ssid
             ? screen.ssid === selectedState.ssid
             : screen.screenId === selectedState.screenId;
+
+          const clicks = statsSettings.onlyFirstClick ? screen.clicks.slice(0, 1) : screen.clicks;
+
           return isSelectedScreen
-            ? screen.clicks.filter((click) => {
+            ? clicks.filter((click) => {
                 return !area || isClickInArea(click, area);
               })
             : [];
@@ -324,65 +317,59 @@ export const PrototypeScreenStats = ({
   };
 
   return (
-    <>
-      <Dialog open={!!selectedState} onClose={onClose} TransitionComponent={Transition} fullScreen onKeyDown={handleKeyDown}>
-        <div className={classes.container}>
-          <header className={classes.header}>
-            <div className={classes.screenInfo}>
-              <button className={classes.button} onClick={moveToPrevScreen} disabled={screenIndex === 0}>
-                <ChevronLeftIcon />
-              </button>
-
-              <RichText className={classes.screenDescription} text={screen?.data.description || 'Экран без названия'} />
-
-              <span className={classes.screenIndex}>{`(${screenIndex + 1} из ${screens.length})`}</span>
-
-              <button className={classes.button} onClick={moveToNextScreen} disabled={screenIndex === screens.length - 1}>
-                <ChevronRightIcon />
-              </button>
-            </div>
-
-            <button className={classes.button} onClick={onClose}>
-              <CloseIcon />
+    <div onKeyDown={handleKeyDown}>
+      <div className={classes.container}>
+        <header className={classes.header}>
+          <div className={classes.screenInfo}>
+            <button className={classes.button} onClick={moveToPrevScreen} disabled={screenIndex === 0}>
+              <ChevronLeftIcon />
             </button>
-          </header>
 
-          <div className={classes.tabs}>
-            {tabs.map(({ name, value }) => (
-              <button
-                key={value}
-                className={cx(classes.tab, { [classes.selected]: tab === value })}
-                onClick={() => setTab(value)}
-              >
-                {name}
-              </button>
-            ))}
+            <RichText className={classes.screenDescription} text={screen?.data.description || 'Экран без названия'} />
+
+            <span className={classes.screenIndex}>{`(${screenIndex + 1} из ${screens.length})`}</span>
+
+            <button className={classes.button} onClick={moveToNextScreen} disabled={screenIndex === screens.length - 1}>
+              <ChevronRightIcon />
+            </button>
           </div>
 
-          <div className={classes.content}>
-            {screen && (
-              <div className={classes.image}>
-                {tab === 'heatmap' && <PrototypeHeatMap {...imageProps} />}
-                {tab === 'clickmap' && <PrototypeClickMap {...imageProps} />}
-                {tab === 'image' && <PrototypeScreenImage {...imageProps} />}
-              </div>
-            )}
+          <button className={classes.button} onClick={onClose}>
+            <CloseIcon />
+          </button>
+        </header>
 
-            <PrototypeScreenGeneralStats
-              config={{
-                onlyFirstClick: true,
-                showClickOrder: !!selectedState?.sessionId && tab === 'clickmap',
-                showClickableArea: true,
-                areaSelection: !selectedState?.sessionId,
-              }}
-              stats={screenStats}
-              settings={statsSettings}
-              onChangeSetting={handleSettingChange}
-            />
-          </div>
+        <div className={classes.tabs}>
+          {tabs.map(({ name, value }) => (
+            <button key={value} className={cx(classes.tab, { [classes.selected]: tab === value })} onClick={() => setTab(value)}>
+              {name}
+            </button>
+          ))}
         </div>
-      </Dialog>
-    </>
+
+        <div className={classes.content}>
+          {screen && (
+            <div className={classes.image}>
+              {tab === 'heatmap' && <PrototypeHeatMap {...imageProps} />}
+              {tab === 'clickmap' && <PrototypeClickMap {...imageProps} />}
+              {tab === 'image' && <PrototypeScreenImage {...imageProps} />}
+            </div>
+          )}
+
+          <PrototypeScreenGeneralStats
+            config={{
+              onlyFirstClick: true,
+              showClickOrder: !!selectedState?.sessionId && tab === 'clickmap',
+              showClickableArea: true,
+              areaSelection: !selectedState?.sessionId,
+            }}
+            stats={screenStats}
+            settings={statsSettings}
+            onChangeSetting={handleSettingChange}
+          />
+        </div>
+      </div>
+    </div>
   );
 };
 

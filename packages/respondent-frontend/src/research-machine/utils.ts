@@ -253,7 +253,8 @@ function evaluateAnswerOperand(
 }
 
 function evaluateUTMOperand(operand: Extract<DisplayRuleOperand, { type: 'utm' }>, referer: string): boolean {
-  const params = new URLSearchParams(referer);
+  const url = new URL(referer);
+  const params = new URLSearchParams(url.search);
   const actualValue = params.get(operand.name);
 
   switch (operand.operator) {
@@ -262,10 +263,10 @@ function evaluateUTMOperand(operand: Extract<DisplayRuleOperand, { type: 'utm' }
     case 'not-equals':
       return actualValue !== operand.value;
     case 'exists': {
-      return !!actualValue;
+      return actualValue !== null;
     }
     case 'not-exists': {
-      return !actualValue;
+      return actualValue === null;
     }
     default:
       return false;

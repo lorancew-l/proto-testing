@@ -17,15 +17,12 @@ export class EventController {
       const validatedEvent = researchEventSchema.parse(event);
 
       if (validatedEvent.appName !== 'test') {
-        await this.eventService.writeEvent(validatedEvent);
+        await this.eventService.processEvent(validatedEvent);
       }
 
       return 'Ok';
     } catch (error) {
-      console.log(error);
       if (error instanceof ZodError) {
-        console.log(event, error);
-
         throw new BadRequestException(error.errors);
       }
 
