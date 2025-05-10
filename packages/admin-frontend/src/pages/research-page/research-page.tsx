@@ -3,21 +3,21 @@ import { useParams } from 'react-router';
 
 import { useGetResearchRequest } from '../../api';
 
+import { EditPage } from './edit-page';
 import { Header } from './header';
 import { PreviewPage } from './preview-page';
 import { PublishPage } from './publish-page';
-import { ResearchPage } from './research-page';
 import { StatsPage } from './stats-page';
 import { Section, useEditPageActions, useEditPageStore } from './store';
 
 const sectionToComponent: Record<Section, React.ComponentType<{ isLoading: boolean }>> = {
-  research: ResearchPage,
+  edit: EditPage,
   preview: PreviewPage,
   publish: PublishPage,
   stats: StatsPage,
 };
 
-export const EditPage = () => {
+export const ResearchPage = () => {
   const section = useEditPageStore((state) => state.section);
   const PageContent = sectionToComponent[section];
 

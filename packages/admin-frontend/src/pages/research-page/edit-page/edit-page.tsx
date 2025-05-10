@@ -39,7 +39,7 @@ const useStyles = makeStyles()((theme) => ({
 
 const skeletonQuestions = range(5).map(() => generateQuestion('single'));
 
-export const ResearchPage = ({ isLoading }: { isLoading: boolean }) => {
+export const EditPage = ({ isLoading }: { isLoading: boolean }) => {
   const { classes } = useStyles();
   const questions = useEditPageStore((state) => state.research.questions);
 

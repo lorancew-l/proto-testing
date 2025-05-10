@@ -3,7 +3,7 @@ import { Navigate, Outlet, Route, RouterProvider, Routes, createBrowserRouter, u
 import { StyledEngineProvider, ThemeProvider, createTheme } from '@mui/material/styles';
 
 import { AuthContextProvider, useAuthContext } from './auth-context';
-import { EditPage, MainPage, Page403, SignInPage, SignUpPage } from './pages';
+import { MainPage, Page403, ResearchPage, SignInPage, SignUpPage } from './pages';
 
 export const RequireAuth = () => {
   const { getUser } = useAuthContext();
@@ -38,7 +38,7 @@ const RouteList = () => {
       </Route>
 
       <Route path="/researches" element={<MainPage />} />
-      <Route path="/researches/:id" element={<EditPage />} />
+      <Route path="/researches/:id" element={<ResearchPage />} />
       <Route path="/signin" element={<SignInPage />} />
       <Route path="/signup" element={<SignUpPage />} />
       <Route path="/403" element={<Page403 />} />

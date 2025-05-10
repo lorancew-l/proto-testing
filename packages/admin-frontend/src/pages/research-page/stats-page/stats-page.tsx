@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
 import { range } from 'lodash';
@@ -15,10 +15,22 @@ import { makeStyles } from 'tss-react/mui';
 
 import { useGetPublishedResearchRequest, useGetResearchStatsRequest } from '../../../api';
 
+import { FilterSidebar } from './filter-sidebar';
 import { QuestionStats } from './question-stats';
+import { SessionSidebar } from './session-sidebar';
 import { formatTimeMinAndSec } from './utils';
 
 const useStyles = makeStyles()((theme) => ({
+  container: {
+    padding: theme.spacing(3),
+    display: 'flex',
+    flexWrap: 'nowrap',
+    gap: theme.spacing(4),
+    justifyContent: 'space-between',
+    height: `calc(100vh - 44px)`,
+    maxHeight: `calc(100vh - 44px)`,
+    overflow: 'auto',
+  },
   content: {
     margin: '0 auto',
     width: 650,
@@ -77,55 +89,77 @@ export const StatsPage = ({ isLoading }: { isLoading: boolean }) => {
 
   const questions = useMemo(() => publishedResearch?.data.questions ?? [], [publishedResearch]);
 
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+
   const loading = isLoading || statsLoading || dataLoading;
 
   const params = useParams<{ id?: string }>();
+  const researchId = params.id;
+
+  const handleSelectSession = (sessionId: string | null) => {
+    setSelectedSessionId((prev) => (prev === sessionId ? null : sessionId));
+  };
 
   useEffect(() => {
-    const id = params.id;
-    if (id) {
-      getResearchStats(id);
-      getPublishedResearch(id);
+    if (researchId) {
+      getPublishedResearch(researchId);
     }
-  }, [params.id]);
+  }, [researchId]);
+
+  useEffect(() => {
+    if (researchId) {
+      getResearchStats(researchId, selectedSessionId);
+    }
+  }, [researchId, selectedSessionId]);
 
   return (
-    <section className={classes.content}>
-      <header className={classes.generalStats}>
-        <GeneralStatsItem loading={loading} icon={<VisibilityIcon />} metric={stats?.load ?? 0} text="Показы" />
+    <div className={classes.container}>
+      <SessionSidebar
+        isLoading={isLoading}
+        sessions={stats?.sessions ?? []}
+        selectedSessionId={selectedSessionId}
+        onSelectSession={handleSelectSession}
+      />
 
-        <GeneralStatsItem loading={loading} icon={<AssignmentIcon />} metric={stats?.start ?? 0} text="Прохождения" />
+      <section className={classes.content}>
+        <header className={classes.generalStats}>
+          <GeneralStatsItem loading={loading} icon={<VisibilityIcon />} metric={stats?.load ?? 0} text="Показы" />
 
-        <GeneralStatsItem loading={loading} icon={<AssignmentTurnedInIcon />} metric={stats?.finish ?? 0} text="Завершили" />
+          <GeneralStatsItem loading={loading} icon={<AssignmentIcon />} metric={stats?.start ?? 0} text="Прохождения" />
 
-        <GeneralStatsItem
-          loading={loading}
-          icon={<PercentIcon />}
-          metric={Math.floor(((stats?.finish ?? 0) / (stats?.start ?? 1)) * 100)}
-          text="Завершаемость"
-        />
+          <GeneralStatsItem loading={loading} icon={<AssignmentTurnedInIcon />} metric={stats?.finish ?? 0} text="Завершили" />
 
-        <GeneralStatsItem
-          loading={loading}
-          icon={<AccessTimeIcon />}
-          metric={formatTimeMinAndSec(stats?.avgSessionTime ?? 0)}
-          text="Сред. время"
-        />
-      </header>
+          <GeneralStatsItem
+            loading={loading}
+            icon={<PercentIcon />}
+            metric={Math.floor(((stats?.finish ?? 0) / (stats?.start ?? 1)) * 100)}
+            text="Завершаемость"
+          />
 
-      <ol className={classes.list}>
-        {loading &&
-          skeletonQuestions.map((question) => (
-            <Skeleton sx={{ transform: 'none', borderRadius: 4 }} key={question.id} width="100%" height={300} />
-          ))}
+          <GeneralStatsItem
+            loading={loading}
+            icon={<AccessTimeIcon />}
+            metric={formatTimeMinAndSec(stats?.avgSessionTime ?? 0)}
+            text="Сред. время"
+          />
+        </header>
 
-        {!loading &&
-          !!stats &&
-          questions.map((question, index) => (
-            <QuestionStats key={question.id} question={question} index={index} stats={stats?.answers ?? {}} />
-          ))}
-      </ol>
-    </section>
+        <ol className={classes.list}>
+          {loading &&
+            skeletonQuestions.map((question) => (
+              <Skeleton sx={{ transform: 'none', borderRadius: 4 }} key={question.id} width="100%" height={300} />
+            ))}
+
+          {!loading &&
+            !!stats &&
+            questions.map((question, index) => (
+              <QuestionStats key={question.id} question={question} index={index} stats={stats?.answers ?? {}} />
+            ))}
+        </ol>
+      </section>
+
+      <FilterSidebar isLoading={isLoading} />
+    </div>
   );
 };
 

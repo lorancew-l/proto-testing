@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 export const researchEventSchema = z.object({
+  referer: z.string(),
   researchId: z.string(),
   sessionId: z.string(),
   type: z.enum(['research-load', 'research-start', 'research-answer', 'research-finish']),

@@ -89,7 +89,7 @@ export const UncontrolledSelect = <T extends string | number>({
           return <Typography color="gray">{placeholder}</Typography>;
         }
 
-        const label = options.find((option) => option.value === value)?.label;
+        const label = options.find((option) => option.value.toString() === value)?.label;
         return <Typography>{label}</Typography>;
       }}
       displayEmpty

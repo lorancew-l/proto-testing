@@ -45,6 +45,7 @@ void (async () => {
     query: `
       CREATE TABLE IF NOT EXISTS research_events
       (
+        referer String,
         research_id String,
         session_id String,
         ts DateTime,
@@ -52,7 +53,10 @@ void (async () => {
         question_id String,
         question_type String,
         answers String,
-        revision UInt16
+        revision UInt16,
+        device String,
+        os String,
+        browser String
       ) ENGINE = MergeTree()
       ORDER BY session_id;
     `,

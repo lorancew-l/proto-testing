@@ -1,5 +1,5 @@
 FROM node:20-alpine AS base
-RUN npm install -g pnpm@8.8.0 prisma tsx
+RUN npm install -g pnpm@8.8.0
 
 FROM base AS build
 WORKDIR /usr/src/app

@@ -13,7 +13,11 @@ export class ResearchStatisticsController {
   @Get(':id')
   @ApiBearerAuth('Authorization')
   @UseGuards(AccessGuard)
-  getResearchStats(@Param('id') researchId: string, @Query('revision') revision: string | undefined) {
-    return this.researchStatisticsService.getStatistics(researchId, revision ? Number(revision) : undefined);
+  getResearchStats(
+    @Param('id') researchId: string,
+    @Query('revision') revision: string | undefined,
+    @Query('session_id') session_id: string | undefined,
+  ) {
+    return this.researchStatisticsService.getStatistics(researchId, revision ? Number(revision) : undefined, session_id);
   }
 }

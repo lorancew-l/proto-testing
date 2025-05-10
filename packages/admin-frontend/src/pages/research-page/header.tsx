@@ -49,7 +49,7 @@ const useStyles = makeStyles()((theme) => ({
 
 const sections = [
   {
-    value: 'research',
+    value: 'edit',
     name: 'Исследование',
   },
   {

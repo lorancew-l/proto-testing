@@ -10,7 +10,7 @@ import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
-export type Section = 'research' | 'preview' | 'publish' | 'stats';
+export type Section = 'edit' | 'preview' | 'publish' | 'stats';
 
 export type ResearchMetadata = { id: string; name: string; publishedUrl: string | null; publishedRevision: number | null };
 
@@ -81,7 +81,7 @@ const getStoreDefaultValue = (): Omit<EditPageStore, 'actions'> => ({
     publishedRevision: null,
     publishedUrl: null,
   },
-  section: 'research',
+  section: 'edit',
   form: {
     registeredFields: {},
     scheduledFocusPath: null,

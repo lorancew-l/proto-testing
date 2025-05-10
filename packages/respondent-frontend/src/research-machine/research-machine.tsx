@@ -426,7 +426,6 @@ const useResearchMachine = (research: Research & { id: string; revision: number 
     });
   }, [research]);
   const [state, send, actor] = useMachine(machine);
-  console.log({ state });
   return { state, send, actor };
 };
 

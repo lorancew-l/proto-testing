@@ -40,20 +40,25 @@ export type PrototypeQuestionStats = {
 export type GenericQuestionStats = Record<string, number> & { skipped?: number; total?: number };
 export type FreeTextQuestionStats = { answers?: string[]; skipped?: number; total?: number };
 
+export type Session = { session_id: string; ts: number; os: string; device: string; browser: string };
+
 interface Stats {
   load?: number;
   start?: number;
   finish?: number;
   avgSessionTime: number;
   answers: Record<string, GenericQuestionStats | FreeTextQuestionStats | PrototypeQuestionStats>;
+  sessions: Session[];
 }
 
 export const useGetResearchStatsRequest = (props?: UseFetch<Stats>) => {
   const { fetchData, ...rest } = useFetch({ ...props, withAuth: true });
 
   const getResearchStats = useCallback(
-    (id: string) => {
-      return fetchData(`/api/stats/${id}`, { method: 'GET' });
+    (id: string, sessionId: string | null) => {
+      const params = new URLSearchParams();
+      if (sessionId) params.set('session_id', sessionId);
+      return fetchData(`/api/stats/${id}${params.size ? '?' + params.toString() : ''}`, { method: 'GET' });
     },
     [fetchData],
   );

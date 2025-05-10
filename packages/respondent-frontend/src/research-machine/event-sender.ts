@@ -13,6 +13,7 @@ export interface CommonData {
 }
 
 interface EventSenderEvent extends CommonData {
+  referer: string;
   type: ResearchEvent['type'];
   questionId: string | null;
   questionType: Question['type'] | null;
@@ -58,6 +59,7 @@ export class EventSender implements IEventSender {
 
   public sendEvent(event: ResearchEvent) {
     return this.postEvent({
+      referer: window.location.href,
       type: event.type,
       answers: event.type === 'research-answer' ? this.buildAnswers(event) : null,
       questionId: 'questionId' in event ? event.questionId : null,
@@ -81,6 +83,7 @@ export class EventSenderMock implements IEventSender {
 
   public sendEvent(event: ResearchEvent) {
     return this.postEvent({
+      referer: window.location.href,
       type: event.type,
       answers: 'answer' in event ? ('answers' in event.answer ? JSON.stringify(event.answer.answers) : event.answer.text) : null,
       questionId: 'questionId' in event ? event.questionId : null,

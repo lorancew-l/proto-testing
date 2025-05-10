@@ -6,8 +6,8 @@ import { Question } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 import { useShallow } from 'zustand/react/shallow';
 
+import { Sidebar } from '../../sidebar';
 import { useEditPageStore } from '../../store';
-import { Sidebar } from '../sidebar';
 
 import { ChipSelect } from './chip-select';
 import { DisplayRule } from './display-rule';

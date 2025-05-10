@@ -10,8 +10,8 @@ import { makeStyles } from 'tss-react/mui';
 
 import { questionTypeToIcon } from '../../common';
 import { RichText } from '../../rich-text';
+import { Sidebar } from '../../sidebar';
 import { useEditPageActions, useEditPageStore, useIsActiveQuestion } from '../../store';
-import { Sidebar } from '../sidebar';
 
 const useStyles = makeStyles()((theme) => ({
   questionList: {
@@ -19,11 +19,14 @@ const useStyles = makeStyles()((theme) => ({
     display: 'flex',
     flexDirection: 'column',
     margin: theme.spacing(2, 0),
+    overflowY: 'auto',
+    maxHeight: 'calc(100vh - 169px)',
   },
   questionItem: {
     display: 'flex',
     alignItems: 'center',
-    height: 40,
+    minHeight: 40,
+    maxHeight: 40,
     flexWrap: 'nowrap',
     gap: theme.spacing(1),
     borderRadius: theme.shape.borderRadius * 2,

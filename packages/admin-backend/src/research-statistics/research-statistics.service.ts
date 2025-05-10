@@ -45,6 +45,11 @@ type QuestionStats = GenericQuestionStats | FreeTextQuestionStats | PrototypeQue
 
 type QuestionsAnswersStats = Record<string, QuestionStats>;
 
+type StatFilter = {
+  query_params: Record<string, unknown>;
+  where: string[];
+};
+
 @Injectable()
 export class ResearchStatisticsService {
   constructor(
@@ -59,6 +64,56 @@ export class ResearchStatisticsService {
       select: { revision: true },
     });
     return foundResearch ? foundResearch.revision : null;
+  }
+
+  private getFilter({
+    research_id,
+    revision,
+    session_id,
+  }: {
+    research_id: string;
+    revision: number;
+    session_id: string | undefined;
+  }): StatFilter {
+    const whereClauses = ['research_id = {research_id: String}', 'revision = {revision: UInt16}'];
+    const query_params: Record<string, unknown> = {
+      research_id: research_id,
+      revision,
+    };
+
+    if (session_id !== undefined) {
+      whereClauses.push('session_id = {session_id: String}');
+      query_params.session_id = session_id;
+    }
+
+    return { query_params, where: whereClauses };
+  }
+
+  private async getSessions(researchId: string, revision: number) {
+    const result = await this.statisticsProviderService.query({
+      query: `
+        SELECT
+          session_id,
+          device,
+          os,
+          browser,
+          ts
+        FROM
+          research_events
+        WHERE
+          research_id = {research_id: String}
+        AND
+          revision = {revision: UInt16}
+        AND
+          type = 'research-load'
+        ORDER BY
+          ts DESC`,
+      query_params: { research_id: researchId, revision },
+      format: 'JSONEachRow',
+    });
+
+    const sessions = await result.json<{ session_id: string; device: string; os: string; browser: string; ts: number }>();
+    return sessions;
   }
 
   public async getResearchLoadCount(researchId: string, revision?: number) {
@@ -84,21 +139,19 @@ export class ResearchStatisticsService {
     return Number(count);
   }
 
-  private async getGeneralStats(researchId: string, revision: number) {
+  private async getGeneralStats(filter: StatFilter) {
     const result = await this.statisticsProviderService.query({
       query: `
-        SELECT
-          type,
-          COUNT(type) AS count
-        FROM
-          research_events
-        WHERE
-          research_id = {research_id: String}
-        AND
-          revision = {revision: UInt16}
-        GROUP BY
-          type`,
-      query_params: { research_id: researchId, revision },
+      SELECT
+        type,
+        COUNT(type) AS count
+      FROM
+        research_events
+      WHERE
+        ${buildWhereClause(filter)}
+      GROUP BY
+        type`,
+      query_params: filter.query_params,
       format: 'JSONEachRow',
     });
 
@@ -109,7 +162,7 @@ export class ResearchStatisticsService {
     }, {});
   }
 
-  private async getAverageSessionDuration(researchId: string, revision: number) {
+  private async getAverageSessionDuration(filter: StatFilter) {
     const result = await this.statisticsProviderService.query({
       query: `
         SELECT
@@ -120,14 +173,14 @@ export class ResearchStatisticsService {
           FROM 
             research_events
           WHERE
-            research_id = {research_id: String}
+            ${buildWhereClause(filter)}
           AND
             revision = {revision: UInt16}
           GROUP BY
             research_id, session_id
         )
         `,
-      query_params: { research_id: researchId, revision },
+      query_params: filter.query_params,
       format: 'JSONEachRow',
     });
 
@@ -135,7 +188,7 @@ export class ResearchStatisticsService {
     return avg_session_duration * 1000;
   }
 
-  private async getQuestionAnswerStats(researchId: string, revision: number): Promise<QuestionsAnswersStats> {
+  private async getQuestionAnswerStats(filter: StatFilter): Promise<QuestionsAnswersStats> {
     const result = await this.statisticsProviderService.query({
       query: `
         SELECT
@@ -146,15 +199,11 @@ export class ResearchStatisticsService {
         FROM
           research_events
         WHERE
-          research_id = {research_id: String}
-        AND
-          type='research-answer'
-        AND
-          revision = {revision: UInt16}
+          ${buildWhereClause(filter, ["type='research-answer'"])}
         ORDER BY
           ts ASC
         `,
-      query_params: { research_id: researchId, revision },
+      query_params: filter.query_params,
       format: 'JSONEachRow',
     });
 
@@ -279,13 +328,16 @@ export class ResearchStatisticsService {
     return questionAnswerStats;
   }
 
-  public async getStatistics(researchId: string, revision?: number) {
+  public async getStatistics(researchId: string, revision: number | undefined, session_id: string | undefined) {
     const resolvedRevision = revision ?? (await this.getLatestRevision(researchId)) ?? 1;
 
-    const [generalStats, avgSessionTime, questionAnswersStats] = await Promise.all([
-      this.getGeneralStats(researchId, resolvedRevision),
-      this.getAverageSessionDuration(researchId, resolvedRevision),
-      this.getQuestionAnswerStats(researchId, resolvedRevision),
+    const filter = this.getFilter({ research_id: researchId, revision: resolvedRevision, session_id });
+
+    const [generalStats, avgSessionTime, questionAnswersStats, sessions] = await Promise.all([
+      this.getGeneralStats(filter),
+      this.getAverageSessionDuration(filter),
+      this.getQuestionAnswerStats(filter),
+      this.getSessions(researchId, resolvedRevision),
     ]);
 
     return {
@@ -293,6 +345,7 @@ export class ResearchStatisticsService {
       answers: questionAnswersStats,
       avgSessionTime,
       revision: resolvedRevision,
+      sessions,
     };
   }
 }
@@ -326,4 +379,8 @@ function calculateMedian(numbers: number[]): number {
   } else {
     return sorted[mid];
   }
+}
+
+function buildWhereClause(filter: StatFilter, extraConditions: string[] = []) {
+  return [...filter.where, ...extraConditions].join('\nAND ');
 }
