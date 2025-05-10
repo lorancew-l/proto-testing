@@ -1,6 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 
+import cn from 'classnames';
 import type { PrototypeArea, PrototypeScreen as PrototypeScreenType } from 'shared';
 
 import styles from './prototype-screen.module.css';
@@ -8,11 +9,15 @@ import styles from './prototype-screen.module.css';
 export const PrototypeScreen = ({
   screen,
   onClick,
+  showAreaOnMisclick,
 }: {
   screen: PrototypeScreenType;
+  showAreaOnMisclick: boolean;
   onClick: (click: { x: number; y: number }, area: PrototypeArea | null) => void;
 }) => {
   const imageRef = useRef<HTMLImageElement | null>(null);
+
+  const [showAreasId, setShowAreasId] = useState<number | null>(null);
 
   const calculateClickRelativePosition = (event: React.MouseEvent) => {
     const image = imageRef.current;
@@ -31,6 +36,10 @@ export const PrototypeScreen = ({
 
     if (clickPosition) {
       onClick(clickPosition, area);
+    }
+
+    if (!area && showAreaOnMisclick) {
+      setShowAreasId(Date.now());
     }
   };
 
@@ -60,19 +69,25 @@ export const PrototypeScreen = ({
           </CSSTransition>
         </SwitchTransition>
 
-        {screen.data.areas.map((area) => (
-          <div
-            key={area.id}
-            className={styles.clickableArea}
-            style={{
-              left: `${area.rect.left}%`,
-              top: `${area.rect.top}%`,
-              width: `${area.rect.width}%`,
-              height: `${area.rect.height}%`,
-            }}
-            onClick={(event) => handleImageClick(event, area)}
-          />
-        ))}
+        <div
+          key={showAreasId}
+          className={cn({ [cn(styles.visibleAreas)]: showAreasId !== null })}
+          onAnimationEnd={() => setShowAreasId(null)}
+        >
+          {screen.data.areas.map((area) => (
+            <div
+              key={area.id}
+              className={styles.clickableArea}
+              style={{
+                left: `${area.rect.left}%`,
+                top: `${area.rect.top}%`,
+                width: `${area.rect.width}%`,
+                height: `${area.rect.height}%`,
+              }}
+              onClick={(event) => handleImageClick(event, area)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

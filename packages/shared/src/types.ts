@@ -87,6 +87,7 @@ export interface PrototypeScreen {
 export interface PrototypeQuestion extends BaseQuestion {
   type: 'prototype';
   description: string;
+  showAreaOnMisclick: boolean;
   screens: PrototypeScreen[];
 }
 

@@ -56,6 +56,25 @@
   transition: opacity 300ms ease-out;
 }
 
+.visibleAreas {
+  animation: fade-in 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.visibleAreas .clickableArea {
+  background-color: rgba(66, 165, 245, 0.3);
+  border: 1px solid #1565c0;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
 @media (max-width: 599px) {
   .image {
     cursor: default;

@@ -147,6 +147,8 @@ const PrototypeQuestionSettings = ({ path, questionIndex }: QuestionSettingsProp
     <>
       <FormSwitchInput path={`${path}.requiresAnswer`} label="Обязательный вопрос" />
 
+      <FormSwitchInput path={`${path}.showAreaOnMisclick`} label="Показывать области при мисклике" />
+
       <DisplayRule path={path} questionIndex={questionIndex} />
     </>
   );

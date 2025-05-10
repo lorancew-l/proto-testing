@@ -51,7 +51,9 @@ export const PrototypeQuestion = ({ question, state }: QuestionProps<'prototype'
         </button>
       )}
 
-      {currentScreen && <PrototypeScreen screen={currentScreen} onClick={handleScreenClick} />}
+      {currentScreen && (
+        <PrototypeScreen screen={currentScreen} onClick={handleScreenClick} showAreaOnMisclick={question.showAreaOnMisclick} />
+      )}
 
       <div
         className={cn(styles.backdrop, {

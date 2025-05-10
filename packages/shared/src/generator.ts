@@ -84,6 +84,7 @@ export const generateQuestion = <T extends Question['type']>(
       return {
         type,
         description: '',
+        showAreaOnMisclick: false,
         screens: [generatePrototypeScreen({ x: 0, y: 0 })],
         ...baseQuestion,
         ...overrides,
