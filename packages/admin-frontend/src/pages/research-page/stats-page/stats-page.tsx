@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
 
-import { range } from 'lodash';
+import { isEqual, range } from 'lodash';
 
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -13,7 +13,7 @@ import { Skeleton, Typography } from '@mui/material';
 import { generateQuestion } from 'shared';
 import { makeStyles } from 'tss-react/mui';
 
-import { useGetPublishedResearchRequest, useGetResearchStatsRequest } from '../../../api';
+import { StatFilter, useGetPublishedResearchRequest, useGetResearchStatsRequest } from '../../../api';
 
 import { FilterSidebar } from './filter-sidebar';
 import { QuestionStats } from './question-stats';
@@ -34,7 +34,6 @@ const useStyles = makeStyles()((theme) => ({
   content: {
     margin: '0 auto',
     width: 650,
-    padding: theme.spacing(3, 0),
   },
   generalStats: {
     display: 'flex',
@@ -76,6 +75,7 @@ const useStyles = makeStyles()((theme) => ({
     display: 'flex',
     flexDirection: 'column',
     gap: theme.spacing(3),
+    paddingBottom: theme.spacing(3),
   },
 }));
 
@@ -84,12 +84,51 @@ const skeletonQuestions = range(5).map(() => generateQuestion('single'));
 export const StatsPage = ({ isLoading }: { isLoading: boolean }) => {
   const { classes } = useStyles();
 
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [appliedFilter, setAppliedFiler] = useState<StatFilter | null>(null);
+
   const { isLoading: dataLoading, data: publishedResearch, getPublishedResearch } = useGetPublishedResearchRequest();
-  const { isLoading: statsLoading, data: stats, getResearchStats } = useGetResearchStatsRequest();
+  const {
+    isLoading: statsLoading,
+    data: stats,
+    getResearchStats,
+  } = useGetResearchStatsRequest({
+    onSuccess: (result) => {
+      if (!result.sessions.some((session) => session.session_id === selectedSessionId)) {
+        setSelectedSessionId(null);
+      }
+    },
+  });
+
+  const handleFilterChange = (filter: StatFilter) => {
+    setAppliedFiler((prevFilter) => {
+      let answerFilter: StatFilter['answer'] | null = null;
+
+      if (filter.answer) {
+        const operands = filter.answer.operands.filter((operand) => operand.answers.length);
+        const operators = filter.answer.operators.slice(0, operands.length - 1);
+
+        if (operands.length) {
+          answerFilter = { operands, operators };
+        }
+      }
+
+      const nextFilter = {
+        referer: filter?.referer ?? null,
+        completed: filter?.completed ?? null,
+        device: filter?.device ?? null,
+        os: filter?.os ?? null,
+        browser: filter?.browser ?? null,
+        answer: answerFilter ? answerFilter : null,
+      };
+
+      console.log(isEqual(nextFilter, prevFilter), { nextFilter, prevFilter });
+      if (isEqual(nextFilter, prevFilter)) return prevFilter;
+      return nextFilter;
+    });
+  };
 
   const questions = useMemo(() => publishedResearch?.data.questions ?? [], [publishedResearch]);
-
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
 
   const loading = isLoading || statsLoading || dataLoading;
 
@@ -108,9 +147,9 @@ export const StatsPage = ({ isLoading }: { isLoading: boolean }) => {
 
   useEffect(() => {
     if (researchId) {
-      getResearchStats(researchId, selectedSessionId);
+      getResearchStats(researchId, selectedSessionId, appliedFilter);
     }
-  }, [researchId, selectedSessionId]);
+  }, [researchId, selectedSessionId, appliedFilter]);
 
   return (
     <div className={classes.container}>
@@ -158,7 +197,12 @@ export const StatsPage = ({ isLoading }: { isLoading: boolean }) => {
         </ol>
       </section>
 
-      <FilterSidebar isLoading={isLoading} />
+      <FilterSidebar
+        isLoading={isLoading}
+        researchId={researchId ?? ''}
+        questions={publishedResearch?.data.questions ?? []}
+        onFilterChange={handleFilterChange}
+      />
     </div>
   );
 };

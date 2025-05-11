@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { range } from 'lodash';
 
@@ -11,9 +11,10 @@ import { DisplayRuleOperand, DisplayRuleOperator, DisplayRuleType, Question } fr
 import { makeStyles } from 'tss-react/mui';
 
 import { RichText } from '../../rich-text';
+import { SelectOption, UncontrolledSelect } from '../../select';
 import { useEditPageStore, useFieldController } from '../../store';
 
-import { FormSelect, SelectOption, UncontrolledSelect } from './form-select';
+import { FormSelect } from './form-select';
 import { FormTextInput } from './form-text-input';
 
 const useStyles = makeStyles<void, 'deleteOperandButton'>()((theme, _, classes) => ({
@@ -112,7 +113,6 @@ export const DisplayRule = ({ path, questionIndex }: { path: `research.questions
     if (!rule) return;
     onChange({
       ...rule,
-      // @ts-ignore
       operands: [...rule.operands, { id: nanoid(10), type: 'utm', operator: 'equals', name: '', value: '' }],
       operators: rule.operands.length ? [...rule.operators, 'and'] : [],
     });
@@ -121,11 +121,11 @@ export const DisplayRule = ({ path, questionIndex }: { path: `research.questions
   const handleDeleteOperand = (id: string, index: number) => {
     const rule = getCurrentValue();
     if (!rule) return;
+    const operandIndex = Math.max(0, index - 1);
     onChange({
       ...rule,
-      // @ts-ignore
       operands: rule.operands.filter((operand) => operand.id !== id),
-      operators: rule.operators.filter((_, opIndex) => opIndex !== index),
+      operators: rule.operators.filter((_, opIndex) => opIndex !== operandIndex),
     });
   };
 
@@ -143,16 +143,15 @@ export const DisplayRule = ({ path, questionIndex }: { path: `research.questions
 
           <div className={classes.block}>
             {value.operands.map((operand, index) => (
-              <>
+              <React.Fragment key={operand.id}>
                 <RuleOperand
-                  key={operand.id}
                   path={`${path}.displayRule.operands.${index}`}
                   questionIndex={questionIndex}
                   onDelete={() => handleDeleteOperand(operand.id, index)}
                 />
 
                 {index !== value.operands.length - 1 && <RuleOperator path={`${path}.displayRule.operators.${index}`} />}
-              </>
+              </React.Fragment>
             ))}
 
             <button className={classes.addOperandButton} onClick={handleAppendOperand}>

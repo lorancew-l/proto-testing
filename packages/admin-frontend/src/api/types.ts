@@ -1,7 +1,7 @@
 import type { Research as ResearchData } from 'shared';
 
-export type { Session } from './use-get-research-stats-request';
-
+export type { ResearchSuggestionField } from './use-get-research-filter-suggestions';
+export type { Session, StatFilter } from './use-get-research-stats-request';
 export type User = {
   id: string;
   firstName: string;

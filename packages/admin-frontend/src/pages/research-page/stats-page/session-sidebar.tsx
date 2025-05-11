@@ -5,7 +5,7 @@ import { capitalize } from 'lodash';
 import { DesktopWindows, PhoneIphone, TabletMac } from '@mui/icons-material';
 import { Divider, Typography, alpha } from '@mui/material';
 
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { makeStyles } from 'tss-react/mui';
 
@@ -118,7 +118,7 @@ const SessionItem = memo(
         onClick={() => onClick(session.session_id)}
       >
         <Typography variant="body1" fontWeight="bold">
-          {format(new Date(session.ts), 'd MMMM, HH:mm', { locale: ru })}
+          {formatUtcToLocal(session.ts)}
         </Typography>
 
         <div className={classes.deviceInfo}>
@@ -165,3 +165,10 @@ const getDeviceIcon = (device: string) => {
       return null;
   }
 };
+
+function formatUtcToLocal(utcString: string) {
+  const parsedUtc = parse(utcString, 'yyyy-MM-dd HH:mm:ss', new Date());
+  const timeZoneOffset = new Date().getTimezoneOffset();
+  parsedUtc.setMinutes(parsedUtc.getMinutes() - timeZoneOffset);
+  return format(parsedUtc, 'd MMMM, HH:mm', { locale: ru });
+}

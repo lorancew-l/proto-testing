@@ -40,7 +40,7 @@ export type PrototypeQuestionStats = {
 export type GenericQuestionStats = Record<string, number> & { skipped?: number; total?: number };
 export type FreeTextQuestionStats = { answers?: string[]; skipped?: number; total?: number };
 
-export type Session = { session_id: string; ts: number; os: string; device: string; browser: string };
+export type Session = { session_id: string; ts: string; os: string; device: string; browser: string };
 
 interface Stats {
   load?: number;
@@ -51,14 +51,38 @@ interface Stats {
   sessions: Session[];
 }
 
+export type StatFilter = {
+  completed: 'all' | 'uncompleted' | 'completed';
+  referer: { key: string; value: string[] | null } | null;
+  device: string[] | null;
+  os: string[] | null;
+  browser: string[] | null;
+  answer: {
+    operators: ('or' | 'and')[];
+    operands: {
+      id: string;
+      type: 'single' | 'multiple' | 'rating' | 'free-text' | 'prototype';
+      questionId: string;
+      answers: string[];
+    }[];
+  } | null;
+};
+
 export const useGetResearchStatsRequest = (props?: UseFetch<Stats>) => {
   const { fetchData, ...rest } = useFetch({ ...props, withAuth: true });
 
   const getResearchStats = useCallback(
-    (id: string, sessionId: string | null) => {
-      const params = new URLSearchParams();
-      if (sessionId) params.set('session_id', sessionId);
-      return fetchData(`/api/stats/${id}${params.size ? '?' + params.toString() : ''}`, { method: 'GET' });
+    (id: string, sessionId: string | null, filter: StatFilter | null) => {
+      return fetchData(`/api/stats/${id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          session_id: sessionId,
+          ...filter,
+        }),
+      });
     },
     [fetchData],
   );

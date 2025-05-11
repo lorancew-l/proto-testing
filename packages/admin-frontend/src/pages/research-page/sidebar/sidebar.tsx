@@ -7,6 +7,7 @@ const useStyles = makeStyles()((theme) => ({
     borderRadius: theme.shape.borderRadius * 4,
     height: '100%',
     width: 350,
+    flexShrink: 0,
     position: 'sticky',
     top: 0,
   },

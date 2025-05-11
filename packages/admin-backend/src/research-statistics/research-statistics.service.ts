@@ -45,6 +45,21 @@ type QuestionStats = GenericQuestionStats | FreeTextQuestionStats | PrototypeQue
 
 type QuestionsAnswersStats = Record<string, QuestionStats>;
 
+export type StatFilterParams = {
+  research_id: string;
+  revision: number;
+  session_id: string | null;
+  completed: 'all' | 'uncompleted' | 'completed' | null;
+  referer: { key: string; value: string[] | null } | null;
+  device: string[] | null;
+  os: string[] | null;
+  browser: string[] | null;
+  answer: {
+    operators: ('or' | 'and')[];
+    operands: { type: 'single' | 'multiple' | 'rating'; questionId: string; answers: string[] }[];
+  } | null;
+};
+
 type StatFilter = {
   query_params: Record<string, unknown>;
   where: string[];
@@ -66,30 +81,244 @@ export class ResearchStatisticsService {
     return foundResearch ? foundResearch.revision : null;
   }
 
+  public async getRefererParameterKeys(researchId: string, revision?: number): Promise<Record<string, string[]>> {
+    const resolvedRevision = revision ?? (await this.getLatestRevision(researchId)) ?? 1;
+
+    const baseParams = {
+      research_id: researchId,
+      revision: resolvedRevision,
+    };
+
+    const keyResult = await this.statisticsProviderService.query({
+      query: `
+        SELECT DISTINCT
+          arrayJoin(extractURLParameterNames(referer)) AS key
+        FROM 
+          research_events
+        WHERE
+          research_id = {research_id: String}
+        AND
+          revision = {revision: UInt16}
+        AND
+          referer != ''`,
+      query_params: baseParams,
+      format: 'JSONEachRow',
+    });
+
+    const keys = (await keyResult.json<{ key: string }>()).map((r) => r.key);
+
+    const output: Record<string, string[]> = {};
+    for (const key of keys) {
+      const valueResult = await this.statisticsProviderService.query({
+        query: `
+          SELECT DISTINCT
+            extractURLParameter(referer, '${key}') AS value
+          FROM
+            research_events
+          WHERE
+            research_id = {research_id: String}
+          AND
+            revision = {revision: UInt16}
+          AND
+            referer != ''`,
+        query_params: baseParams,
+        format: 'JSONEachRow',
+      });
+
+      const values = (await valueResult.json<{ value: string }>()).map((r) => r.value).filter((v) => !!v);
+      output[key] = values;
+    }
+
+    return output;
+  }
+
+  public async getAvailableDevice(researchId: string, revision?: number): Promise<string[]> {
+    const resolvedRevision = revision ?? (await this.getLatestRevision(researchId)) ?? 1;
+
+    const result = await this.statisticsProviderService.query({
+      query: `
+        SELECT DISTINCT
+          device
+        FROM
+          research_events
+        WHERE
+          research_id = {research_id: String}
+        AND
+          revision = {revision: UInt16}
+        AND
+          notEmpty(device)`,
+      query_params: {
+        research_id: researchId,
+        revision: resolvedRevision,
+      },
+      format: 'JSONEachRow',
+    });
+
+    const rows = await result.json<{ device: string }>();
+    return rows.map((r) => r.device);
+  }
+
+  public async getAvailableOS(researchId: string, revision?: number): Promise<string[]> {
+    const resolvedRevision = revision ?? (await this.getLatestRevision(researchId)) ?? 1;
+
+    const result = await this.statisticsProviderService.query({
+      query: `
+        SELECT DISTINCT
+          os
+        FROM
+          research_events
+        WHERE
+          research_id = {research_id: String}
+        AND
+          revision = {revision: UInt16}
+        AND
+          notEmpty(os)`,
+      query_params: {
+        research_id: researchId,
+        revision: resolvedRevision,
+      },
+      format: 'JSONEachRow',
+    });
+
+    const rows = await result.json<{ os: string }>();
+    return rows.map((r) => r.os);
+  }
+
+  public async getAvailableBrowser(researchId: string, revision?: number): Promise<string[]> {
+    const resolvedRevision = revision ?? (await this.getLatestRevision(researchId)) ?? 1;
+
+    const result = await this.statisticsProviderService.query({
+      query: `
+        SELECT DISTINCT
+          browser
+        FROM
+          research_events
+        WHERE
+          research_id = {research_id: String}
+        AND
+          revision = {revision: UInt16}
+        AND
+          notEmpty(browser)`,
+      query_params: {
+        research_id: researchId,
+        revision: resolvedRevision,
+      },
+      format: 'JSONEachRow',
+    });
+
+    const rows = await result.json<{ browser: string }>();
+    return rows.map((r) => r.browser);
+  }
+
   private getFilter({
     research_id,
     revision,
     session_id,
-  }: {
-    research_id: string;
-    revision: number;
-    session_id: string | undefined;
-  }): StatFilter {
+    completed,
+    referer,
+    answer,
+    device,
+    os,
+    browser,
+  }: StatFilterParams): StatFilter {
     const whereClauses = ['research_id = {research_id: String}', 'revision = {revision: UInt16}'];
     const query_params: Record<string, unknown> = {
-      research_id: research_id,
+      research_id,
       revision,
     };
 
-    if (session_id !== undefined) {
+    if (session_id) {
       whereClauses.push('session_id = {session_id: String}');
       query_params.session_id = session_id;
+    }
+
+    if (completed === 'completed') {
+      whereClauses.push(`
+      session_id IN (
+        SELECT DISTINCT session_id
+        FROM research_events
+        WHERE research_id = {research_id: String}
+          AND revision = {revision: UInt16}
+          AND type = 'research-finish'
+      )
+    `);
+    } else if (completed === 'uncompleted') {
+      whereClauses.push(`
+      session_id NOT IN (
+        SELECT DISTINCT session_id
+        FROM research_events
+        WHERE research_id = {research_id: String}
+          AND revision = {revision: UInt16}
+          AND type = 'research-finish'
+      )
+    `);
+    }
+
+    if (referer?.key) {
+      if (referer.value?.length) {
+        whereClauses.push(`extractURLParameter(referer, {referer_key: String}) IN ({referer_values: Array(String)})`);
+        query_params.referer_key = referer.key;
+        query_params.referer_values = referer.value;
+      } else {
+        whereClauses.push(`has(extractURLParameterNames(referer), {referer_key: String})`);
+        query_params.referer_key = referer.key;
+      }
+    }
+
+    if (answer && answer.operands.length > 0) {
+      const subqueries: string[] = [];
+
+      for (const [index, operand] of answer.operands.entries()) {
+        const questionIdVar = `ans_question_${index}`;
+        const answersVar = `ans_answers_${index}`;
+
+        const subquery = `
+          SELECT DISTINCT session_id
+          FROM research_events
+          WHERE
+            research_id = {research_id: String}
+            AND revision = {revision: UInt16}
+            AND type = 'research-answer'
+            AND question_id = {${questionIdVar}: String}
+            AND hasAny(JSONExtract(answers, 'Array(String)'), {${answersVar}: Array(String)})
+        `.trim();
+
+        subqueries.push(`session_id IN (${subquery})`);
+
+        query_params[questionIdVar] = operand.questionId;
+        query_params[answersVar] = operand.answers;
+      }
+
+      let expression = subqueries[0];
+      for (let i = 0; i < answer.operators.length; i++) {
+        const operator = answer.operators[i].toUpperCase();
+        const next = subqueries[i + 1];
+
+        expression = `(${expression} ${operator} ${next})`;
+      }
+
+      whereClauses.push(`(${expression})`);
+    }
+
+    if (device?.length) {
+      whereClauses.push('device IN {device: Array(String)}');
+      query_params.device = device;
+    }
+
+    if (os?.length) {
+      whereClauses.push('os IN {os: Array(String)}');
+      query_params.os = os;
+    }
+
+    if (browser?.length) {
+      whereClauses.push('browser IN {browser: Array(String)}');
+      query_params.browser = browser;
     }
 
     return { query_params, where: whereClauses };
   }
 
-  private async getSessions(researchId: string, revision: number) {
+  private async getSessions(filter: StatFilter) {
     const result = await this.statisticsProviderService.query({
       query: `
         SELECT
@@ -101,14 +330,10 @@ export class ResearchStatisticsService {
         FROM
           research_events
         WHERE
-          research_id = {research_id: String}
-        AND
-          revision = {revision: UInt16}
-        AND
-          type = 'research-load'
+          ${buildWhereClause(filter, ["type = 'research-load'"])}
         ORDER BY
           ts DESC`,
-      query_params: { research_id: researchId, revision },
+      query_params: filter.query_params,
       format: 'JSONEachRow',
     });
 
@@ -328,16 +553,18 @@ export class ResearchStatisticsService {
     return questionAnswerStats;
   }
 
-  public async getStatistics(researchId: string, revision: number | undefined, session_id: string | undefined) {
-    const resolvedRevision = revision ?? (await this.getLatestRevision(researchId)) ?? 1;
+  public async getStatistics(filterParams: PartialBy<StatFilterParams, 'revision'>) {
+    const resolvedRevision = filterParams.revision ?? (await this.getLatestRevision(filterParams.research_id)) ?? 1;
+    const filter: StatFilterParams = { ...filterParams, revision: resolvedRevision };
 
-    const filter = this.getFilter({ research_id: researchId, revision: resolvedRevision, session_id });
+    const statFilter = this.getFilter(filter);
+    const sessionFilter = this.getFilter({ ...filter, session_id: null });
 
     const [generalStats, avgSessionTime, questionAnswersStats, sessions] = await Promise.all([
-      this.getGeneralStats(filter),
-      this.getAverageSessionDuration(filter),
-      this.getQuestionAnswerStats(filter),
-      this.getSessions(researchId, resolvedRevision),
+      this.getGeneralStats(statFilter),
+      this.getAverageSessionDuration(statFilter),
+      this.getQuestionAnswerStats(statFilter),
+      this.getSessions(sessionFilter),
     ]);
 
     return {
@@ -384,3 +611,5 @@ function calculateMedian(numbers: number[]): number {
 function buildWhereClause(filter: StatFilter, extraConditions: string[] = []) {
   return [...filter.where, ...extraConditions].join('\nAND ');
 }
+
+type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
